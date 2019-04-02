@@ -18,7 +18,7 @@ pkg_check_modules(SYSREPO REQUIRED libSysrepo-cpp) #PkgConfig cmake module maccr
 
 # set compiler and linker flags
 set(RIGOROUS_C_FLAGS "-Wlogical-op -Wold-style-cast")
-set(CMAKE_CXX_FLAGS "-Wall -Wextra -std=c++11 ${RIGOROUS_C_FLAGS}")
+set(CMAKE_CXX_FLAGS "-Wall -Wextra -std=c++11 -g ${RIGOROUS_C_FLAGS}")
 set(CMAKE_CXX_FLAGS_RELEASE "-Wall -Wextra -std=c++11 -DNDEBUG -O2 ${RIGOROUS_C_FLAGS}")
 set(CMAKE_CXX_FLAGS_DEBUG   "-Wall -Wextra -std=c++11 -g -O0 ${RIGOROUS_C_FLAGS}")
 

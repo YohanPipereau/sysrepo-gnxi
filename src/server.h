@@ -8,13 +8,17 @@
 
 using namespace grpc;
 using namespace gnmi;
+using namespace std;
 using sysrepo::Session;
 using sysrepo::Connection;
 
 class GNMIServer final : public gNMI::Service
 {
   public:
-    GNMIServer() : sr_sess(std::make_shared<Connection>(Connection("app_name"))) {}
+    GNMIServer() {
+      sr_con = make_shared<Connection>("app");
+      sr_sess = make_shared<Session>(sr_con);
+    }
 
     Status Capabilities(ServerContext* context,
         const CapabilityRequest* request, CapabilityResponse* response);
@@ -29,5 +33,6 @@ class GNMIServer final : public gNMI::Service
         ServerReaderWriter<SubscribeResponse, SubscribeRequest>* stream);
 
   private:
-    Session sr_sess; //sysrepo session
+    std::shared_ptr<Connection> sr_con;
+    std::shared_ptr<Session> sr_sess; //sysrepo session
 };

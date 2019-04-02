@@ -12,11 +12,7 @@
 #include "security.h"
 #include "server.h"
 
-using namespace grpc;
-using namespace gnmi;
 using namespace std;
-using namespace chrono;
-using namespace sysrepo;
 
 void RunServer(ServerSecurityContext *cxt)
 {
