@@ -12,6 +12,7 @@ using namespace std;
 using sysrepo::Session;
 using sysrepo::Connection;
 
+
 class GNMIServer final : public gNMI::Service
 {
   public:

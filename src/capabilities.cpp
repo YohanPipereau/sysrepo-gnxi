@@ -6,13 +6,15 @@ using namespace grpc;
 using namespace gnmi;
 using namespace std;
 using sysrepo::Yang_Schemas;
+using google::protobuf::FileOptions;
 
 Status GNMIServer::Capabilities(ServerContext *context,
                                  const CapabilityRequest* request,
                                  CapabilityResponse* response)
 {
   shared_ptr<Yang_Schemas> schemas;
-  cout << "In Capabilities" << endl;
+  string gnmi_version;
+  FileOptions fopts;
 
   if (request->extension_size() > 0) {
     cerr << "Extensions not implemented" << endl;
@@ -26,10 +28,17 @@ Status GNMIServer::Capabilities(ServerContext *context,
     for (unsigned int i = 0; i < schemas->schema_cnt(); i++) {
       auto model = response->add_supported_models();
       model->set_name(schemas->schema(i)->module_name());
+      model->set_version(schemas->schema(i)->revision()->revision());
     }
 
-    response->set_gnmi_version("1");
+    gnmi_version = response->GetDescriptor()->file()->options()
+                            .GetExtension(gnmi::gnmi_service);
+    response->set_gnmi_version(gnmi_version);
+    //response->set_gnmi_version(fopts.options()GetExtension(gnmi_service));
+
     response->add_supported_encodings(gnmi::Encoding::ASCII);
+    response->add_supported_encodings(gnmi::Encoding::JSON);
+
   } catch (const exception &exc) {
     cerr << exc.what() << endl;
     return Status(StatusCode::INTERNAL, grpc::string("Fail getting schemas"));
