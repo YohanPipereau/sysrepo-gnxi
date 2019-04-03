@@ -46,6 +46,9 @@ class GNMIServer final : public gNMI::Service
     /* Get current time since epoch in nanosec */
     uint64_t get_time_nanosec();
 
+    /* Set helper */
+    int handleUpdate(Update in, UpdateResult *out, string prefix);
+
     /* Subscribe helper */
     void BuildNotification(const SubscriptionList & request,
                            SubscribeResponse& response);

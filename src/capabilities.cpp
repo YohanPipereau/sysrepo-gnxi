@@ -35,15 +35,15 @@ Status GNMIServer::Capabilities(ServerContext *context,
                             .GetExtension(gnmi::gnmi_service);
     response->set_gnmi_version(gnmi_version);
 
-    //Enconding used in TypedValue for responses
+    //Encoding used in TypedValue for responses
     //response->add_supported_encodings(gnmi::Encoding::JSON);
-    response->add_supported_encodings(gnmi::Encoding::BYTES);
+    //response->add_supported_encodings(gnmi::Encoding::BYTES);
     //response->add_supported_encodings(gnmi::Encoding::PROTO);
     //response->add_supported_encodings(gnmi::Encoding::ASCII);
     //response->add_supported_encodings(gnmi::Encoding::JSON_IETF);
 
   } catch (const exception &exc) {
-    cerr << exc.what() << endl;
+    cerr << "ERROR" << exc.what() << endl;
     return Status(StatusCode::INTERNAL, grpc::string("Fail getting schemas"));
   }
 
