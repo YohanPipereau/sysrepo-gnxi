@@ -34,6 +34,9 @@ set(GNMI_SRC src/main.cpp
              src/security.cpp
              src/server.cpp
              src/capabilities.cpp
+             src/get.cpp
+             src/set.cpp
+             src/subscribe.cpp
 )
 
 add_executable(gnmi_server ${GNMI_SRC})
