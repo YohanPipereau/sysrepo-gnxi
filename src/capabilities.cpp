@@ -34,10 +34,13 @@ Status GNMIServer::Capabilities(ServerContext *context,
     gnmi_version = response->GetDescriptor()->file()->options()
                             .GetExtension(gnmi::gnmi_service);
     response->set_gnmi_version(gnmi_version);
-    //response->set_gnmi_version(fopts.options()GetExtension(gnmi_service));
 
-    response->add_supported_encodings(gnmi::Encoding::ASCII);
-    response->add_supported_encodings(gnmi::Encoding::JSON);
+    //Enconding used in TypedValue for responses
+    //response->add_supported_encodings(gnmi::Encoding::JSON);
+    response->add_supported_encodings(gnmi::Encoding::BYTES);
+    //response->add_supported_encodings(gnmi::Encoding::PROTO);
+    //response->add_supported_encodings(gnmi::Encoding::ASCII);
+    //response->add_supported_encodings(gnmi::Encoding::JSON_IETF);
 
   } catch (const exception &exc) {
     cerr << exc.what() << endl;
