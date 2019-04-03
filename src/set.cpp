@@ -4,13 +4,13 @@
 
 using namespace sysrepo;
 
-int GNMIServer::handleUpdate(Update in, UpdateResult *out, string prefix)
+StatusCode GNMIServer::handleUpdate(Update in, UpdateResult *out, string prefix)
 {
   shared_ptr<Val> sval;
   //Parse request
   if (!in.has_path() || !in.has_val()) {
     cerr << "ERROR: Update no path or value" << endl;
-    return -1;
+    return StatusCode::INVALID_ARGUMENT;
   }
 
   string fullpath = prefix + gnmi_to_xpath(in.path());
@@ -37,32 +37,32 @@ int GNMIServer::handleUpdate(Update in, UpdateResult *out, string prefix)
       sval = make_shared<Val>(static_cast<double>(reqval.float_val()));
       break;
     case gnmi::TypedValue::ValueCase::kDecimalVal:
-      cerr << "ERROR: Unsupported Decimal64 type" << endl;
-      break;
+      throw std::invalid_argument("Unsupported Decimal64 type");
+      return StatusCode::UNIMPLEMENTED;
     case gnmi::TypedValue::ValueCase::kLeaflistVal:
-      cerr << "ERROR: Unsupported leaflist type" << endl;
-      return -1;
+      throw std::invalid_argument("Unsupported leaflist type");
+      return StatusCode::UNIMPLEMENTED;
     case gnmi::TypedValue::ValueCase::kAnyVal:
-      cerr << "ERROR: Unsupported PROTOBUF Encoding" << endl;
-      return -1;
+      throw std::invalid_argument("Unsupported PROTOBUF Encoding");
+      return StatusCode::UNIMPLEMENTED;
     case gnmi::TypedValue::ValueCase::kJsonVal:
-      cerr << "ERROR: Unsupported JSON Encoding" << endl;
-      return -1;
+      throw std::invalid_argument("Unsupported JSON Encoding");
+      return StatusCode::UNIMPLEMENTED;
     case gnmi::TypedValue::ValueCase::kJsonIetfVal:
-      cerr << "ERROR: Unsupported IETF JSON Encoding" << endl;
-      return -1;
+      throw std::invalid_argument("Unsupported IETF JSON Encoding");
+      return StatusCode::UNIMPLEMENTED;
     case gnmi::TypedValue::ValueCase::kAsciiVal:
-      cerr << "ERROR: Unsupported ASCII Encoding" << endl;
-      return -1;
+      throw std::invalid_argument("Unsupported ASCII Encoding");
+      return StatusCode::UNIMPLEMENTED;
     case gnmi::TypedValue::ValueCase::kProtoBytes:
-      cerr << "ERROR: Unsupported PROTOBUF BYTE Encoding" << endl;
-      return -1;
+      throw std::invalid_argument("Unsupported PROTOBUF BYTE Encoding");
+      return StatusCode::UNIMPLEMENTED;
     case gnmi::TypedValue::ValueCase::VALUE_NOT_SET:
-      cerr << "ERROR: Value not set" << endl;
-      return -1;
+      throw std::invalid_argument("Value not set");
+      return StatusCode::INVALID_ARGUMENT;
     default:
-      cerr << "ERROR: Unknown value type" << endl;
-      return -1;
+      throw std::invalid_argument("Unknown value type");
+      return StatusCode::INVALID_ARGUMENT;
   }
 
   sr_sess->set_item(fullpath.c_str(), sval);
@@ -70,7 +70,7 @@ int GNMIServer::handleUpdate(Update in, UpdateResult *out, string prefix)
   //Fill in Reponse
   out->set_allocated_path(in.release_path());
 
-  return 0;
+  return StatusCode::OK;
 }
 
 Status GNMIServer::Set(ServerContext *context, const SetRequest* request,
@@ -119,9 +119,12 @@ Status GNMIServer::Set(ServerContext *context, const SetRequest* request,
       UpdateResult* res = response->add_response();
       try {
         handleUpdate(upd, res, prefix);
-      } catch (const exception &exc) {
+      } catch (const invalid_argument &exc) {
         cerr << "ERROR" << exc.what() << endl;
-        return Status(StatusCode::INTERNAL, grpc::string("set item failed"));
+        return Status(StatusCode::INVALID_ARGUMENT, grpc::string(exc.what()));
+      } catch (const sysrepo_exception &exc) {
+        cerr << "ERROR" << exc.what() << endl;
+        return Status(StatusCode::INTERNAL, grpc::string(exc.what()));
       }
       res->set_op(gnmi::UpdateResult::REPLACE);
     }
@@ -133,9 +136,12 @@ Status GNMIServer::Set(ServerContext *context, const SetRequest* request,
       UpdateResult* res = response->add_response();
       try {
         handleUpdate(upd, res, prefix);
-      } catch (const exception &exc) {
+      } catch (const invalid_argument &exc) {
         cerr << "ERROR" << exc.what() << endl;
-        return Status(StatusCode::INTERNAL, grpc::string("set item failed"));
+        return Status(StatusCode::INVALID_ARGUMENT, grpc::string(exc.what()));
+      } catch (const sysrepo_exception &exc) {
+        cerr << "ERROR" << exc.what() << endl;
+        return Status(StatusCode::INTERNAL, grpc::string(exc.what()));
       }
       res->set_op(gnmi::UpdateResult::UPDATE);
     }
