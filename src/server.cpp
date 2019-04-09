@@ -6,6 +6,7 @@
 
 using namespace chrono;
 
+
 uint64_t GNMIServer::get_time_nanosec()
 {
   nanoseconds ts;

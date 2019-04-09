@@ -10,8 +10,15 @@ set(CMAKE_CXX_STANDARD 11)
 # Cmake find modules
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_LIST_DIR}/cmake")
 
+find_package(JSONCPP REQUIRED) #use FindJSONCPP.cmake
 find_package(PkgConfig) #official cmake module
 pkg_check_modules(SYSREPO REQUIRED libSysrepo-cpp) #PkgConfig cmake module maccro
+
+if(LIBJSONCPP_FOUND)
+    message ("LIBJSONCPP found")
+else()
+    message (FATAL_ERROR "Cannot find LIBJSONCPP")
+endif()
 
 # DEPENDENCIES & COMPILATION OF GNMI PROTO
 ##########################################
@@ -37,6 +44,7 @@ set(GNMI_SRC src/main.cpp
              src/get.cpp
              src/set.cpp
              src/subscribe.cpp
+             src/encode/json_ietf.cpp
 )
 
 add_executable(gnmi_server ${GNMI_SRC})
@@ -45,5 +53,7 @@ target_include_directories(gnmi_server PRIVATE ${PROTOBUF_INCLUDE_DIR}
                              ${CMAKE_CURRENT_BINARY_DIR}/proto
                              ${SYSREPO_INCLUDE_DIRS})
 
-# link gnmi_server executable with protobuf, grpc, pugixml, sysrepo libraries
-target_link_libraries(gnmi_server gnmi ${SYSREPO_LIBRARIES})
+# link gnmi_server executable with grpc, jsoncpp, sysrepo libraries
+target_link_libraries(gnmi_server gnmi
+                      ${SYSREPO_LIBRARIES}
+                      ${LIBJSONCPP_LIBRARY})

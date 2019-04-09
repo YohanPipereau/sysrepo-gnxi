@@ -1,6 +1,7 @@
 /*  vim:set softtabstop=2 shiftwidth=2 tabstop=2 expandtab: */
 
 #include "server.h"
+#include "encode/json_ietf.h"
 
 using namespace sysrepo;
 
@@ -20,21 +21,26 @@ StatusCode GNMIServer::handleUpdate(Update in, UpdateResult *out, string prefix)
   switch (reqval.value_case()) {
     case gnmi::TypedValue::ValueCase::kStringVal:
       sval = make_shared<Val>(reqval.string_val().c_str());
+      sr_sess->set_item(fullpath.c_str(), sval);
       break;
     case gnmi::TypedValue::ValueCase::kIntVal:
       sval = make_shared<Val>(reqval.int_val(), SR_INT64_T);
+      sr_sess->set_item(fullpath.c_str(), sval);
       break;
     case gnmi::TypedValue::ValueCase::kUintVal:
       sval = make_shared<Val>(reqval.uint_val(), SR_UINT64_T);
+      sr_sess->set_item(fullpath.c_str(), sval);
       break;
     case gnmi::TypedValue::ValueCase::kBoolVal:
       sval = make_shared<Val>(reqval.bool_val());
+      sr_sess->set_item(fullpath.c_str(), sval);
       break;
     case gnmi::TypedValue::ValueCase::kBytesVal:
-      sval = make_shared<Val>(reqval.bytes_val().c_str(), SR_BINARY_T);
-      break;
+      throw std::invalid_argument("Unsupported BYTES Encoding");
+      return StatusCode::UNIMPLEMENTED;
     case gnmi::TypedValue::ValueCase::kFloatVal:
       sval = make_shared<Val>(static_cast<double>(reqval.float_val()));
+      sr_sess->set_item(fullpath.c_str(), sval);
       break;
     case gnmi::TypedValue::ValueCase::kDecimalVal:
       throw std::invalid_argument("Unsupported Decimal64 type");
@@ -49,8 +55,14 @@ StatusCode GNMIServer::handleUpdate(Update in, UpdateResult *out, string prefix)
       throw std::invalid_argument("Unsupported JSON Encoding");
       return StatusCode::UNIMPLEMENTED;
     case gnmi::TypedValue::ValueCase::kJsonIetfVal:
-      throw std::invalid_argument("Unsupported IETF JSON Encoding");
-      return StatusCode::UNIMPLEMENTED;
+      {
+        auto json_map = parse(reqval.json_ietf_val(), prefix);
+        for (auto it : json_map) {
+          cout << "DEBUG: intent to config " << it.first << endl;
+          sr_sess->set_item(it.first.c_str(), it.second);
+        }
+        break;
+      }
     case gnmi::TypedValue::ValueCase::kAsciiVal:
       throw std::invalid_argument("Unsupported ASCII Encoding");
       return StatusCode::UNIMPLEMENTED;
@@ -65,7 +77,6 @@ StatusCode GNMIServer::handleUpdate(Update in, UpdateResult *out, string prefix)
       return StatusCode::INVALID_ARGUMENT;
   }
 
-  sr_sess->set_item(fullpath.c_str(), sval);
 
   //Fill in Reponse
   out->set_allocated_path(in.release_path());
@@ -103,7 +114,7 @@ Status GNMIServer::Set(ServerContext *context, const SetRequest* request,
       try {
         sr_sess->delete_item(fullpath.c_str()); //EDIT_DEFAULT option
       } catch (const exception &exc) {
-        cerr << "ERROR" << exc.what() << endl;
+        cerr << __FUNCTION__ << __LINE__ << "ERROR" << exc.what() << endl;
         return Status(StatusCode::INTERNAL, grpc::string("delete item failed"));
       }
       //Fill in Reponse
@@ -120,10 +131,10 @@ Status GNMIServer::Set(ServerContext *context, const SetRequest* request,
       try {
         handleUpdate(upd, res, prefix);
       } catch (const invalid_argument &exc) {
-        cerr << "ERROR" << exc.what() << endl;
+        cerr << __FUNCTION__ << __LINE__ << "ERROR" << exc.what() << endl;
         return Status(StatusCode::INVALID_ARGUMENT, grpc::string(exc.what()));
       } catch (const sysrepo_exception &exc) {
-        cerr << "ERROR" << exc.what() << endl;
+        cerr << __FUNCTION__ << __LINE__ << "ERROR" << exc.what() << endl;
         return Status(StatusCode::INTERNAL, grpc::string(exc.what()));
       }
       res->set_op(gnmi::UpdateResult::REPLACE);
@@ -137,10 +148,10 @@ Status GNMIServer::Set(ServerContext *context, const SetRequest* request,
       try {
         handleUpdate(upd, res, prefix);
       } catch (const invalid_argument &exc) {
-        cerr << "ERROR" << exc.what() << endl;
+        cerr << __FUNCTION__ << __LINE__ << "ERROR" << exc.what() << endl;
         return Status(StatusCode::INVALID_ARGUMENT, grpc::string(exc.what()));
       } catch (const sysrepo_exception &exc) {
-        cerr << "ERROR" << exc.what() << endl;
+        cerr << __FUNCTION__ << __LINE__ << "ERROR" << exc.what() << endl;
         return Status(StatusCode::INTERNAL, grpc::string(exc.what()));
       }
       res->set_op(gnmi::UpdateResult::UPDATE);
@@ -150,7 +161,7 @@ Status GNMIServer::Set(ServerContext *context, const SetRequest* request,
   try {
     sr_sess->commit();
   } catch (const exception &exc) {
-    cerr << "ERROR" << exc.what() << endl;
+    cerr << __FUNCTION__ << __LINE__ << "ERROR" << exc.what() << endl;
     return Status(StatusCode::INTERNAL, grpc::string("commit failed"));
   }
 

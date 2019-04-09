@@ -16,14 +16,14 @@ using sysrepo::Connection;
 class GNMIServer final : public gNMI::Service
 {
   public:
-    GNMIServer() {
-      sr_con = make_shared<Connection>("sysrepo-gnmi");
-      sr_sess = make_shared<Session>(sr_con);
-    }
-
     GNMIServer(string app_name) {
-      sr_con = make_shared<Connection>(app_name.c_str());
-      sr_sess = make_shared<Session>(sr_con);
+      try {
+        sr_con = make_shared<Connection>(app_name.c_str());
+        sr_sess = make_shared<Session>(Session(sr_con));
+      } catch (sysrepo::sysrepo_exception &exc) {
+        cerr << "Error: Connection to sysrepo failed" << exc.what() << endl;
+        exit(1);
+      }
     }
 
     Status Capabilities(ServerContext* context,
@@ -63,6 +63,6 @@ class GNMIServer final : public gNMI::Service
               ServerReaderWriter<SubscribeResponse, SubscribeRequest>* stream);
 
   private:
-    std::shared_ptr<Connection> sr_con;
-    std::shared_ptr<Session> sr_sess; //sysrepo session
+    sysrepo::S_Connection sr_con;
+    sysrepo::S_Session sr_sess; //sysrepo session
 };

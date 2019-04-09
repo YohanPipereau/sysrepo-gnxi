@@ -5,7 +5,7 @@
 #include <chrono>
 #include <getopt.h>
 
-#include <grpc/grpc.h>
+#include <grpcpp/grpcpp.h>
 #include <grpcpp/server.h>
 #include <grpcpp/server_builder.h>
 
@@ -17,12 +17,13 @@ using namespace std;
 void RunServer(ServerSecurityContext *cxt)
 {
   std::string server_address("0.0.0.0:50051");
-  GNMIServer service;
+  GNMIServer service("sysepo-gnmi");
   ServerBuilder builder;
 
   builder.AddListeningPort(server_address, cxt->GetCredentials());
   builder.RegisterService(&service);
   std::unique_ptr<Server> server(builder.BuildAndStart());
+  std::cout << "Using grpc " << grpc::Version() << std::endl;
   std::cout << "Server listening on " << server_address << std::endl;
 
   server->Wait();
