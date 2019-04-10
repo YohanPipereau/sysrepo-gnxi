@@ -12,6 +12,7 @@
 class Json {
   public:
     Json(std::shared_ptr<sysrepo::Session> sr_sess);
+    void print_loaded_module();
 
   private:
     std::shared_ptr<libyang::Context> ctx;

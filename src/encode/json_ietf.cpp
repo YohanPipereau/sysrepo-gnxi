@@ -2,11 +2,20 @@
 
 #include <exception>
 
-#include "json_ietf.h"
 #include <sysrepo-cpp/Struct.hpp>
+#include <libyang/Tree_Schema.hpp>
+
+#include "json_ietf.h"
 
 using namespace std;
 using namespace libyang;
+
+void Json::print_loaded_module()
+{
+  for (auto it : ctx->get_module_iter()) {
+    cout << string(it->name()) << endl;
+  }
+}
 
 /*
  * @brief Fetch all modules implemented in sysrepo datastore
