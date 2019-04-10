@@ -6,8 +6,6 @@ find_package(Protobuf 3.0.0 REQUIRED) #official cmake module
 include_directories(${PROTOBUF_INCLUDE_DIRS})
 include_directories(${CMAKE_CURRENT_BINARY_DIR})
 
-message(STATUS "Using protobuf ${protobuf_VERSION}")
-
 # Require at least gRPC 1.12.0, maybe earlier can be used
 
 # Official gRPCConfig.cmake installed by gRPC only if compiled with cmake

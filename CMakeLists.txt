@@ -8,7 +8,7 @@ set(CMAKE_CXX_STANDARD 11)
 ##############
 
 # Cmake find modules
-list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_LIST_DIR}/cmake")
+list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_LIST_DIR}/CmakeModules")
 
 include_directories(${LIBYANG_INCLUDE_DIRS})
 
