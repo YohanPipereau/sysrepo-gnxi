@@ -6,6 +6,10 @@
 #include <sysrepo-cpp/Connection.hpp>
 #include <sysrepo-cpp/Session.hpp>
 
+#include "encode/json_ietf.h"
+
+#define UNUSED(x) (void)x
+
 using namespace grpc;
 using namespace gnmi;
 using namespace std;
@@ -20,6 +24,7 @@ class GNMIServer final : public gNMI::Service
       try {
         sr_con = make_shared<Connection>(app_name.c_str());
         sr_sess = make_shared<Session>(Session(sr_con));
+        json = make_shared<Json>(Json(sr_sess));
       } catch (sysrepo::sysrepo_exception &exc) {
         cerr << "Error: Connection to sysrepo failed" << exc.what() << endl;
         exit(1);
@@ -40,7 +45,6 @@ class GNMIServer final : public gNMI::Service
 
   private:
     /* Conversion methods between xpaths and gNMI paths */
-    void xpath_to_gnmi(Path *path, string xpath);
     string gnmi_to_xpath(const Path& path);
 
     /* Get current time since epoch in nanosec */
@@ -65,4 +69,5 @@ class GNMIServer final : public gNMI::Service
   private:
     sysrepo::S_Connection sr_con;
     sysrepo::S_Session sr_sess; //sysrepo session
+    std::shared_ptr<Json> json; //support for json ietf encoding
 };

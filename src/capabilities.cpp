@@ -12,6 +12,7 @@ Status GNMIServer::Capabilities(ServerContext *context,
                                  const CapabilityRequest* request,
                                  CapabilityResponse* response)
 {
+  UNUSED(context);
   shared_ptr<Yang_Schemas> schemas;
   string gnmi_version;
   FileOptions fopts;

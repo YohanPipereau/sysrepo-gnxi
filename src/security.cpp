@@ -84,6 +84,7 @@ Status UserPassProcessor::Process(const InputMetadata& auth_metadata,
                                       OutputMetadata* consumed_auth_metadata,
                                       OutputMetadata* response_metadata)
 {
+  (void)context; (void)response_metadata;
   /* Look for username/password fields in Metadata sent by client */
   auto user_kv = auth_metadata.find("username");
   if (user_kv == auth_metadata.end()) {

@@ -55,14 +55,8 @@ StatusCode GNMIServer::handleUpdate(Update in, UpdateResult *out, string prefix)
       throw std::invalid_argument("Unsupported JSON Encoding");
       return StatusCode::UNIMPLEMENTED;
     case gnmi::TypedValue::ValueCase::kJsonIetfVal:
-      {
-        auto json_map = parse(reqval.json_ietf_val(), prefix);
-        for (auto it : json_map) {
-          cout << "DEBUG: intent to config " << it.first << endl;
-          sr_sess->set_item(it.first.c_str(), it.second);
-        }
-        break;
-      }
+      throw std::invalid_argument("Unsupported JSON Encoding");
+      break;
     case gnmi::TypedValue::ValueCase::kAsciiVal:
       throw std::invalid_argument("Unsupported ASCII Encoding");
       return StatusCode::UNIMPLEMENTED;
@@ -102,7 +96,7 @@ Status GNMIServer::Set(ServerContext *context, const SetRequest* request,
   if (request->has_prefix()) {
     prefix = gnmi_to_xpath(request->prefix());
     cerr << "DEBUG: prefix is" << prefix << endl;
-    xpath_to_gnmi(response->mutable_prefix(), prefix);
+    response->mutable_prefix()->CopyFrom(request->prefix());
   }
 
   /* gNMI paths to delete */

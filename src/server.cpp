@@ -31,9 +31,3 @@ string GNMIServer::gnmi_to_xpath(const Path& path)
 
   return str;
 }
-
-void GNMIServer::xpath_to_gnmi(Path *path, string xpath)
-{
-  //TODO
-  return;
-}
