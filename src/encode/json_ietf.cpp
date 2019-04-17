@@ -192,24 +192,31 @@ void Json::setAtomic(libyang::S_Data_Node_Leaf_List node)
       break;
     }
     case LY_TYPE_ENUM:          /* Enumerated strings */
-      cerr << "WARN: " << "Unsupported ENUM type" << endl;
-      throw std::invalid_argument("Unsupported ENUM type");
+      cout << "DEBUG enum: " << node->value()->enm()->name() << endl;
+      sval = make_shared<Val>(node->value()->enm()->name(), SR_ENUM_T);
       break;
-    case LY_TYPE_INST:          /* References a data tree node */
-      cerr << "WARN" << "Unsupported INSTANCE type" << endl;
-      throw std::invalid_argument("Unsupported INSTANCE type");
+    case LY_TYPE_EMPTY:         /* A leaf that does not have any value */
+      cout << "DEBUG EMPTY LEAF: " << endl;
+      sval = make_shared<Val>(nullptr, SR_LEAF_EMPTY_T);
       break;
+    case LY_TYPE_LEAFREF:       /* A reference to a leaf instance */
+    {
+      //run again this function
+      S_Data_Node_Leaf_List leaf
+        = make_shared<Data_Node_Leaf_List>(node->value()->leafref());
+
+      setAtomic(leaf);
+      break;
+    }
+
+/* Unsupported types */
     case LY_TYPE_BITS:          /* A set of bits or flags */
       cerr << "WARN" << "Unsupported BITS type" << endl;
       throw std::invalid_argument("Unsupported BITS type");
       break;
-    case LY_TYPE_EMPTY:         /* A leaf that does not have any value */
-      cerr << "WARN" << "Unsupported EMPTY type" << endl;
-      throw std::invalid_argument("Unsupported EMPTY type");
-      break;
-    case LY_TYPE_LEAFREF:       /* A reference to a leaf instance */
-      cerr << "WARN" << "Unsupported LEAFREF type" << endl;
-      throw std::invalid_argument("Unsupported LEAFREF type");
+    case LY_TYPE_INST:          /* References a data tree node */
+      cerr << "WARN" << "Unsupported INSTANCE-IDENTIFIER type" << endl;
+      throw std::invalid_argument("Unsupported INSTANCE-IDENTIFIER type");
       break;
     case LY_TYPE_UNION:         /* Choice of member types */
       cerr << "WARN" << "Unsupported UNION type" << endl;
