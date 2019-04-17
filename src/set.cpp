@@ -19,19 +19,21 @@ StatusCode GNMIServer::handleUpdate(Update in, UpdateResult *out, string prefix)
   cerr << "DEBUG: Update" << fullpath << endl;
 
   switch (reqval.value_case()) {
-    case gnmi::TypedValue::ValueCase::kStringVal:
+    case gnmi::TypedValue::ValueCase::kStringVal: /* No encoding */
       sval = make_shared<Val>(reqval.string_val().c_str());
       sr_sess->set_item(fullpath.c_str(), sval);
       break;
-    case gnmi::TypedValue::ValueCase::kIntVal:
-      sval = make_shared<Val>(reqval.int_val(), SR_INT64_T);
+    case gnmi::TypedValue::ValueCase::kIntVal: /* No Encoding */
+      //sval = make_shared<Val>(reqval.int_val(), SR_INT64_T);
+      sval = make_shared<Val>(reqval.int_val());
       sr_sess->set_item(fullpath.c_str(), sval);
       break;
-    case gnmi::TypedValue::ValueCase::kUintVal:
-      sval = make_shared<Val>(reqval.uint_val(), SR_UINT64_T);
+    case gnmi::TypedValue::ValueCase::kUintVal: /* No Encoding */
+      //sval = make_shared<Val>(reqval.uint_val(), SR_UINT64_T);
+      sval = make_shared<Val>(reqval.uint_val());
       sr_sess->set_item(fullpath.c_str(), sval);
       break;
-    case gnmi::TypedValue::ValueCase::kBoolVal:
+    case gnmi::TypedValue::ValueCase::kBoolVal: /* No Encoding */
       sval = make_shared<Val>(reqval.bool_val());
       sr_sess->set_item(fullpath.c_str(), sval);
       break;
@@ -42,10 +44,11 @@ StatusCode GNMIServer::handleUpdate(Update in, UpdateResult *out, string prefix)
       sval = make_shared<Val>(static_cast<double>(reqval.float_val()));
       sr_sess->set_item(fullpath.c_str(), sval);
       break;
-    case gnmi::TypedValue::ValueCase::kDecimalVal:
+    case gnmi::TypedValue::ValueCase::kDecimalVal: /* No Encoding */
       throw std::invalid_argument("Unsupported Decimal64 type");
       return StatusCode::UNIMPLEMENTED;
     case gnmi::TypedValue::ValueCase::kLeaflistVal:
+      //TODO Need to support this
       throw std::invalid_argument("Unsupported leaflist type");
       return StatusCode::UNIMPLEMENTED;
     case gnmi::TypedValue::ValueCase::kAnyVal:
@@ -55,7 +58,16 @@ StatusCode GNMIServer::handleUpdate(Update in, UpdateResult *out, string prefix)
       throw std::invalid_argument("Unsupported JSON Encoding");
       return StatusCode::UNIMPLEMENTED;
     case gnmi::TypedValue::ValueCase::kJsonIetfVal:
-      throw std::invalid_argument("Unsupported JSON Encoding");
+      try {
+        json->set(reqval.json_ietf_val());
+      } catch (runtime_error &err) {
+        //wrong input field must reply an error to gnmi client
+        throw std::invalid_argument(err.what());
+        return StatusCode::INVALID_ARGUMENT;
+      } catch (invalid_argument &err) {
+        throw std::invalid_argument(err.what());
+        return StatusCode::INVALID_ARGUMENT;
+      }
       break;
     case gnmi::TypedValue::ValueCase::kAsciiVal:
       throw std::invalid_argument("Unsupported ASCII Encoding");
@@ -108,7 +120,9 @@ Status GNMIServer::Set(ServerContext *context, const SetRequest* request,
       try {
         sr_sess->delete_item(fullpath.c_str()); //EDIT_DEFAULT option
       } catch (const exception &exc) {
-        cerr << __FUNCTION__ << __LINE__ << "ERROR" << exc.what() << endl;
+        cerr << "ERROR: " << __FILE__
+             << " l. " << __LINE__
+             << " " << exc.what() << endl;
         return Status(StatusCode::INTERNAL, grpc::string("delete item failed"));
       }
       //Fill in Reponse
@@ -125,10 +139,19 @@ Status GNMIServer::Set(ServerContext *context, const SetRequest* request,
       try {
         handleUpdate(upd, res, prefix);
       } catch (const invalid_argument &exc) {
-        cerr << __FUNCTION__ << __LINE__ << "ERROR" << exc.what() << endl;
+        cerr << "ERROR: " << __FILE__
+             << " l." << __LINE__
+             << " " << exc.what() << endl;
         return Status(StatusCode::INVALID_ARGUMENT, grpc::string(exc.what()));
       } catch (const sysrepo_exception &exc) {
-        cerr << __FUNCTION__ << __LINE__ << "ERROR" << exc.what() << endl;
+        cerr << "ERROR: " << __FILE__
+             << " l." << __LINE__
+             << " " << exc.what() << endl;
+        return Status(StatusCode::INTERNAL, grpc::string(exc.what()));
+      } catch (const exception &exc) { //Any other exception
+        cerr << "ERROR: " << __FILE__
+             << " l." << __LINE__
+             << " " << exc.what() << endl;
         return Status(StatusCode::INTERNAL, grpc::string(exc.what()));
       }
       res->set_op(gnmi::UpdateResult::REPLACE);
@@ -142,10 +165,14 @@ Status GNMIServer::Set(ServerContext *context, const SetRequest* request,
       try {
         handleUpdate(upd, res, prefix);
       } catch (const invalid_argument &exc) {
-        cerr << __FUNCTION__ << __LINE__ << "ERROR" << exc.what() << endl;
+        cerr << "ERROR: " << __FILE__
+             << " l." << __LINE__
+             << " " << exc.what() << endl;
         return Status(StatusCode::INVALID_ARGUMENT, grpc::string(exc.what()));
       } catch (const sysrepo_exception &exc) {
-        cerr << __FUNCTION__ << __LINE__ << "ERROR" << exc.what() << endl;
+        cerr << "ERROR: " << __FILE__
+             << " l." << __LINE__
+             << " " << exc.what() << endl;
         return Status(StatusCode::INTERNAL, grpc::string(exc.what()));
       }
       res->set_op(gnmi::UpdateResult::UPDATE);
@@ -155,7 +182,9 @@ Status GNMIServer::Set(ServerContext *context, const SetRequest* request,
   try {
     sr_sess->commit();
   } catch (const exception &exc) {
-    cerr << __FUNCTION__ << __LINE__ << "ERROR" << exc.what() << endl;
+    cerr << "ERROR: " << __FILE__
+         << " l." << __LINE__
+         << " " << exc.what() << endl;
     return Status(StatusCode::INTERNAL, grpc::string("commit failed"));
   }
 
