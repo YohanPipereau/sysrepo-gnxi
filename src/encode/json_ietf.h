@@ -31,7 +31,7 @@ class ModuleCallback : public sysrepo::Callback {
                         sr_module_state_t state, void *private_ctx)
     {
       (void)state; (void)private_ctx;
-      //TODO
+      //TODO module loaded in sysrepo after sysrepo-gnmi has been ran
       std::cout << "New module has been installed"
                 << std::string(module_name)
                 << std::string(revision) << std::endl;
@@ -41,7 +41,7 @@ class ModuleCallback : public sysrepo::Callback {
                         sr_module_state_t state, void *private_ctx)
     {
       (void)state; (void)private_ctx;
-      //TODO
+      //TODO feature loaded in sysrepo after sysrepo-gnmi has been ran
       std::cout << "New feature has been installed"
                 << std::string(module_name)
                 << std::string(feature_name) << std::endl;

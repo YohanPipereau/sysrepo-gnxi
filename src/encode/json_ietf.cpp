@@ -63,7 +63,6 @@ Json::Json(std::shared_ptr<sysrepo::Session> sr_sess)
                << endl;
         }
 
-        print_loaded_module();
         return {LYS_IN_YANG, mod_name};
     };
 
@@ -99,6 +98,8 @@ Json::Json(std::shared_ptr<sysrepo::Session> sr_sess)
     }
 
   }
+
+  //TODO Load features present in sysrepo
 
   /* 5. subscribe for notifications about new modules */
   sub.module_install_subscribe(scb);
@@ -244,7 +245,6 @@ void Json::setAtomic(libyang::S_Data_Node_Leaf_List node)
     throw; //rethrow as caught
   }
 }
-
 
 /* Parse a message encoded in JSON IETF
  * @param data Input data encoded in JSON
