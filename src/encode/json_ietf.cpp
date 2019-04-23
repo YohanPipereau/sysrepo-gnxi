@@ -79,24 +79,33 @@ Json::Json(std::shared_ptr<sysrepo::Session> sr_sess)
       cout << "Module was already loaded: "
            << module_name << "@" << revision
            << endl;
-      continue;
-    }
-
-    cout << "Download & parse module: "
-         << module_name << "@" << revision
-         << endl;
-
-    //Download YANG model form sysrepo as a string in YANG format and parse it
-    try {
-      str = sr_sess->get_schema(module_name.c_str(), revision.c_str(), NULL,
-                                SR_SCHEMA_YANG);
-      mod = ctx->parse_module_mem(str.c_str(), LYS_IN_YANG);
-    } catch (const exception &exc) {
-      cerr << "WARN: " << __FILE__
-           << " l." << __LINE__ << " " << exc.what()
+    } else {
+      cout << "Download & parse module: "
+           << module_name << "@" << revision
            << endl;
+
+      //Download YANG model from sysrepo as in YANG format and parse it
+      try {
+        str = sr_sess->get_schema(module_name.c_str(), revision.c_str(), NULL,
+                                  SR_SCHEMA_YANG);
+        mod = ctx->parse_module_mem(str.c_str(), LYS_IN_YANG);
+      } catch (const exception &exc) {
+        cerr << "WARN: " << __FILE__
+             << " l." << __LINE__ << " " << exc.what()
+             << endl;
+        continue;
+      }
     }
 
+    for (size_t j = 0; j < schemas->schema(i)->enabled_feature_cnt(); j++) {
+      string feature_name = schemas->schema(i)->enabled_features(j);
+
+      cout << "DEBUG: " << "Loading feature " << feature_name
+           << " in module " << mod->name()
+           << endl;
+
+      mod->feature_enable(feature_name.c_str());
+    }
   }
 
   //TODO Load features present in sysrepo

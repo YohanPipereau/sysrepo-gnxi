@@ -30,9 +30,9 @@ Supported authentication/encryption methods:
 
 ```
 sysrepo-gnmi
-+-- protobuf (>=3.0)
++-- protobuf (>=3.0) #because of gnmi
 +-- grpc (cpp)
-+-- libyang (cpp)
++-- libyang (cpp >=1.0-r3) #because of feature_enable
 +-- sysrepo
 |   +-- libyang
 |   +-- ...
