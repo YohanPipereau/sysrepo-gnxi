@@ -3,6 +3,7 @@
 #include <exception>
 
 #include <sysrepo-cpp/Struct.hpp>
+#include <sysrepo-cpp/Sysrepo.hpp>
 #include <libyang/Tree_Schema.hpp>
 #include <libyang/Tree_Data.hpp>
 
@@ -13,6 +14,8 @@ using namespace libyang;
 
 using sysrepo::Val;
 using sysrepo::S_Val;
+using sysrepo::Session;
+using sysrepo::SUBSCR_DEFAULT;
 
 void Json::print_loaded_module()
 {
@@ -24,20 +27,85 @@ void Json::print_loaded_module()
        << endl;
 }
 
+/* Class defining callbacks when a module or a feature is loaded in sysrepo */
+class ModuleCallback : public sysrepo::Callback {
+  public:
+    ModuleCallback(shared_ptr<libyang::Context> context) : ctx(context) {}
+
+    void module_install(const char *module_name, const char *revision,
+                        sr_module_state_t state, void *private_ctx) override;
+
+    //void feature_enable(const char *module_name, const char *feature_name,
+    //                    bool enable, void *private_ctx) override
+    //{
+    //    cout << "My callback" << endl;
+    ////  (void)private_ctx;
+    ////  //TODO feature loaded in sysrepo after sysrepo-gnmi has been ran
+    ////  cout << "New feature has been installed"
+    ////            << string(module_name)
+    ////            << string(feature_name) << endl;
+    //}
+
+  private:
+    shared_ptr<libyang::Context> ctx;
+};
+
+void
+ModuleCallback::module_install(const char *module_name, const char *revision,
+                               sr_module_state_t state, void *private_ctx)
+{
+  (void)private_ctx;
+  libyang::S_Module mod;
+  LYS_INFORMAT format;
+
+  switch (state) {
+    case SR_MS_UNINSTALLED:
+      cout << "Uninstall module " << module_name << endl;
+      break;
+    case SR_MS_IMPORTED:
+      cout << "Install " << module_name << " dependency" << endl;
+    case SR_MS_IMPLEMENTED:
+      cout << "Install " << module_name << endl;
+      break;
+  }
+
+  if (ctx == nullptr) {
+    cout << "wtf" << endl;
+  }
+  mod = ctx->get_module(module_name, revision);
+  if (mod != nullptr) {
+    cout << "[RUNTIME] Module was already loaded: "
+      << module_name << "@" << revision
+      << endl;
+  } else {
+    cout << "[RUNTIME] Download & parse module: "
+      << module_name << "@" << revision
+      << endl;
+
+    void (** myfunc)(void*, void*);
+    libyang::Context::cpp_mod_missing_cb(module_name, revision, nullptr, nullptr,
+        nullptr, &format, myfunc);
+  }
+}
+
+
 /*
  * @brief Fetch all modules implemented in sysrepo datastore
  */
-Json::Json(std::shared_ptr<sysrepo::Session> sr_sess)
-  : sr_sess(sr_sess)
+Json::Json(shared_ptr<sysrepo::Session> sess)
+  : sr_sess(sess)
 {
   shared_ptr<sysrepo::Yang_Schemas> schemas; //sysrepo YANG schemas supported
-  sysrepo::Subscribe sub(sr_sess); //sysrepo subscriptions
-  shared_ptr<ModuleCallback> scb(new ModuleCallback());
+  shared_ptr<ModuleCallback> scb; //pointer to callback class
+  sub = make_shared<sysrepo::Subscribe>(sr_sess); //sysrepo subscriptions
   S_Module mod;
   string str;
 
   /* 1. build libyang context */
   ctx = make_shared<Context>();
+
+  /* Instantiate Callback class */
+  scb = make_shared<ModuleCallback>(ctx);
 
   /* 2. get the list of schemas from sysrepo */
   try {
@@ -48,12 +116,12 @@ Json::Json(std::shared_ptr<sysrepo::Session> sr_sess)
   }
 
   /* 3.1 Callback for missing modules */
-  auto mod_c_cb = [sr_sess, this](const char *mod_name, const char *mod_rev,
+  auto mod_c_cb = [this](const char *mod_name, const char *mod_rev,
     const char *, const char *) -> libyang::Context::mod_missing_cb_return {
         string str; S_Module mod;
 
         cout << "Importing missing dependency " << string(mod_name) << endl;
-        str = sr_sess->get_schema(mod_name, mod_rev, NULL, SR_SCHEMA_YANG);
+        str = this->sr_sess->get_schema(mod_name, mod_rev, NULL, SR_SCHEMA_YANG);
 
         try {
           mod = this->ctx->parse_module_mem(str.c_str(), LYS_IN_YANG);
@@ -71,8 +139,8 @@ Json::Json(std::shared_ptr<sysrepo::Session> sr_sess)
 
   /* 4. use modules from sysrepo */
   for (unsigned int i = 0; i < schemas->schema_cnt(); i++) {
-    std::string module_name = schemas->schema(i)->module_name();
-    std::string revision = schemas->schema(i)->revision()->revision();
+    string module_name = schemas->schema(i)->module_name();
+    string revision = schemas->schema(i)->revision()->revision();
 
     mod = ctx->get_module(module_name.c_str(), revision.c_str());
     if (mod != nullptr) {
@@ -84,7 +152,7 @@ Json::Json(std::shared_ptr<sysrepo::Session> sr_sess)
            << module_name << "@" << revision
            << endl;
 
-      //Download YANG model from sysrepo as in YANG format and parse it
+      /* 4.1 Download YANG model from sysrepo as in YANG format and parse it */
       try {
         str = sr_sess->get_schema(module_name.c_str(), revision.c_str(), NULL,
                                   SR_SCHEMA_YANG);
@@ -97,6 +165,7 @@ Json::Json(std::shared_ptr<sysrepo::Session> sr_sess)
       }
     }
 
+    /* 4.2 Load features loaded in sysrepo */
     for (size_t j = 0; j < schemas->schema(i)->enabled_feature_cnt(); j++) {
       string feature_name = schemas->schema(i)->enabled_features(j);
 
@@ -108,13 +177,13 @@ Json::Json(std::shared_ptr<sysrepo::Session> sr_sess)
     }
   }
 
-  //TODO Load features present in sysrepo
-
   /* 5. subscribe for notifications about new modules */
-  sub.module_install_subscribe(scb);
+  sub->module_install_subscribe(scb, ctx.get(), SUBSCR_DEFAULT);
 
-  /* 6. subscribe for changes of features state */
-  sub.feature_enable_subscribe(scb);
+  ///* 6. subscribe for changes of features state */
+  sub->feature_enable_subscribe(scb);
+
+  while (1);
 }
 
 /*

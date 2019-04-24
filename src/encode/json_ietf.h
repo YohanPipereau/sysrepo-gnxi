@@ -13,6 +13,8 @@
 class Json {
   public:
     Json(std::shared_ptr<sysrepo::Session> sr_sess);
+    ~Json() {std::cout << "Disconnect sysrepo session and Libyang context"
+                       << std::endl;}
     void print_loaded_module();
     void set(std::string data);
 
@@ -22,30 +24,8 @@ class Json {
   private:
     std::shared_ptr<libyang::Context> ctx;
     std::shared_ptr<sysrepo::Session> sr_sess;
-};
-
-/* Class defining callbacks when a module or a feature is loaded in sysrepo */
-class ModuleCallback : public sysrepo::Callback {
-  public:
-    void module_install(const char *module_name, const char *revision,
-                        sr_module_state_t state, void *private_ctx)
-    {
-      (void)state; (void)private_ctx;
-      //TODO module loaded in sysrepo after sysrepo-gnmi has been ran
-      std::cout << "New module has been installed"
-                << std::string(module_name)
-                << std::string(revision) << std::endl;
-    }
-
-    void feature_enable(const char *module_name, const char *feature_name,
-                        sr_module_state_t state, void *private_ctx)
-    {
-      (void)state; (void)private_ctx;
-      //TODO feature loaded in sysrepo after sysrepo-gnmi has been ran
-      std::cout << "New feature has been installed"
-                << std::string(module_name)
-                << std::string(feature_name) << std::endl;
-    }
+    //must be out of constructor to recv callback
+    sysrepo::S_Subscribe sub;
 };
 
 #endif //_JSON_IETF_ENCODE_H
