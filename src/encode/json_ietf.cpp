@@ -231,27 +231,33 @@ void Json::setAtomic(libyang::S_Data_Node_Leaf_List node)
       sval = make_shared<Val>(static_cast<double>(node->value()->dec64()));
     case LY_TYPE_INT8:          /* 8-bit signed integer */
       cout << "DEBUG int8: " << node->value()->int8() << endl;
-      sval = make_shared<Val>(node->value()->int8());
+      sval = make_shared<Val>(node->value()->int8(), SR_INT8_T);
+      //sval = make_shared<Val>(node->value()->int8());
       break;
     case LY_TYPE_UINT8:         /* 8-bit unsigned integer */
       cout << "DEBUG uint8: " << node->value()->uint8() << endl;
-      sval = make_shared<Val>(node->value()->uint8());
+      sval = make_shared<Val>(node->value()->uint8(), SR_UINT8_T);
+      //sval = make_shared<Val>(node->value()->uint8());
       break;
     case LY_TYPE_INT16:         /* 16-bit signed integer */
       cout << "DEBUG int16: " << node->value()->int16() << endl;
-      sval = make_shared<Val>(node->value()->int16());
+      sval = make_shared<Val>(node->value()->int16(), SR_INT16_T);
+      //sval = make_shared<Val>(node->value()->int16());
       break;
     case LY_TYPE_UINT16:        /* 16-bit unsigned integer */
       cout << "DEBUG uint16: " << node->value()->uint16() << endl;
-      sval = make_shared<Val>(node->value()->uint16());
+      sval = make_shared<Val>(node->value()->uint16(), SR_UINT16_T);
+      //sval = make_shared<Val>(node->value()->uint16());
       break;
     case LY_TYPE_INT32:         /* 32-bit signed integer */
       cout << "DEBUG int32: " << node->value()->int32() << endl;
-      sval = make_shared<Val>(node->value()->int32());
+      sval = make_shared<Val>(node->value()->int32(), SR_INT32_T);
+      //sval = make_shared<Val>(node->value()->int32());
       break;
     case LY_TYPE_UINT32:        /* 32-bit unsigned integer */
       cout << "DEBUG uint32: " << node->value()->uintu32() << endl;
-      sval = make_shared<Val>(node->value()->uintu32());
+      sval = make_shared<Val>(node->value()->uintu32(), SR_UINT32_T);
+      //sval = make_shared<Val>(node->value()->uintu32());
       break;
     case LY_TYPE_INT64:         /* 64-bit signed integer */
       cout << "DEBUG int64: " << node->value()->int64() << endl;
@@ -259,7 +265,8 @@ void Json::setAtomic(libyang::S_Data_Node_Leaf_List node)
       break;
     case LY_TYPE_UINT64:        /* 64-bit unsigned integer */
       cout << "DEBUG uint64: " << node->value()->uint64() << endl;
-      sval = make_shared<Val>(node->value()->uint64());
+      sval = make_shared<Val>(node->value()->uint64(), SR_UINT64_T);
+      //sval = make_shared<Val>(node->value()->uint64());
       break;
     case LY_TYPE_IDENT:         /* A reference to an abstract identity */
     {

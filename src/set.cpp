@@ -24,13 +24,13 @@ StatusCode GNMIServer::handleUpdate(Update in, UpdateResult *out, string prefix)
       sr_sess->set_item(fullpath.c_str(), sval);
       break;
     case gnmi::TypedValue::ValueCase::kIntVal: /* No Encoding */
-      //sval = make_shared<Val>(reqval.int_val(), SR_INT64_T);
-      sval = make_shared<Val>(reqval.int_val());
+      sval = make_shared<Val>(reqval.int_val(), SR_INT64_T);
+      //sval = make_shared<Val>(reqval.int_val());
       sr_sess->set_item(fullpath.c_str(), sval);
       break;
     case gnmi::TypedValue::ValueCase::kUintVal: /* No Encoding */
-      //sval = make_shared<Val>(reqval.uint_val(), SR_UINT64_T);
-      sval = make_shared<Val>(reqval.uint_val());
+      sval = make_shared<Val>(reqval.uint_val(), SR_UINT64_T);
+      //sval = make_shared<Val>(reqval.uint_val());
       sr_sess->set_item(fullpath.c_str(), sval);
       break;
     case gnmi::TypedValue::ValueCase::kBoolVal: /* No Encoding */
