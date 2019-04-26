@@ -7,7 +7,7 @@ A C++ server based on [gNMI specification](https://github.com/openconfig/referen
 Supported RPCs:
 
 * [x] Capabilities
-* [ ] Set
+* [X] Set
 * [ ] Get
 * [ ] Subscribe
 
@@ -44,6 +44,8 @@ Check [here](https://github.com/sysrepo/sysrepo/blob/master/INSTALL.md) for inst
 
 
 # Install
+
+You can run scripts/install.sh to install the required version of libyang or use an older version and apply commit bf1aa13ba2dfb7b5938ed2345a67de316fc34917 to it.
 
 ```
 mkdir -p build
