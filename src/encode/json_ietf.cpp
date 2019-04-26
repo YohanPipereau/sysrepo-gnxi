@@ -63,10 +63,11 @@ ModuleCallback::module_install(const char *module_name, const char *revision,
       cout << "Uninstall module " << module_name << endl;
       break;
     case SR_MS_IMPORTED:
-      cout << "Install " << module_name << " dependency" << endl;
     case SR_MS_IMPLEMENTED:
       cout << "Install " << module_name << endl;
       break;
+    default:
+      cerr << "ERROR: Unknown state" << endl;
   }
 
   if (ctx == nullptr) {
@@ -229,6 +230,7 @@ void Json::setAtomic(libyang::S_Data_Node_Leaf_List node)
     case LY_TYPE_DEC64:         /* 64-bit signed decimal number */
       cout << "DEBUG dec64: " << node->value()->dec64() << endl;
       sval = make_shared<Val>(static_cast<double>(node->value()->dec64()));
+      break;
     case LY_TYPE_INT8:          /* 8-bit signed integer */
       cout << "DEBUG int8: " << node->value()->int8() << endl;
       sval = make_shared<Val>(node->value()->int8(), SR_INT8_T);
