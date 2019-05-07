@@ -107,7 +107,7 @@ ModuleCallback::module_install(const char *module_name, const char *revision,
 
   switch (state) {
   case SR_MS_UNINSTALLED:
-    cout << "Uninstall module " << module_name << endl;
+    cout << "Impossible to remove a module at runtime" << endl;
     break;
 
   case SR_MS_IMPORTED:
