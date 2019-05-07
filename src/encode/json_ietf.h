@@ -24,8 +24,7 @@ class Json {
   private:
     std::shared_ptr<libyang::Context> ctx;
     std::shared_ptr<sysrepo::Session> sr_sess;
-    //must be out of constructor to recv callback
-    sysrepo::S_Subscribe sub;
+    sysrepo::S_Subscribe sub; //must be out of constructor to recv callback
 };
 
 #endif //_JSON_IETF_ENCODE_H

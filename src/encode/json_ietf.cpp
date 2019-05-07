@@ -30,7 +30,9 @@ void Json::print_loaded_module()
 /* Class defining callbacks when a module or a feature is loaded in sysrepo */
 class ModuleCallback : public sysrepo::Callback {
   public:
-    ModuleCallback(shared_ptr<libyang::Context> context) : ctx(context) {}
+    ModuleCallback(shared_ptr<libyang::Context> context,
+                   shared_ptr<sysrepo::Session> sess)
+      : ctx(context), sr_sess(sess) {}
 
     void module_install(const char *module_name, const char *revision,
                         sr_module_state_t state, void *private_ctx) override;
@@ -47,48 +49,78 @@ class ModuleCallback : public sysrepo::Callback {
     //}
 
   private:
+    void uninstall();
+    void install(const char *module_name, const char *revision);
+
+  private:
     shared_ptr<libyang::Context> ctx;
+    shared_ptr<sysrepo::Session> sr_sess;
 };
+
+void ModuleCallback::install(const char *module_name, const char *revision)
+{
+  libyang::S_Module mod;
+  string str;
+
+  /* Is module already loaded with libyang? */
+  mod = ctx->get_module(module_name, revision);
+  if (mod != nullptr) {
+    cout << "[DEBUG] Module was already loaded: "
+      << module_name << "@" << revision
+      << endl;
+    return;
+  }
+
+  /* Download module from sysrepo */
+  try {
+    cout << "[DEBUG] Download " << module_name << " from sysrepo" << endl;
+    str = sr_sess->get_schema(module_name, revision, nullptr, SR_SCHEMA_YANG);
+  } catch (const exception &exc) {
+    cerr << "WARN: " << __FILE__
+         << " l." << __LINE__ << " " << exc.what()
+         << endl;
+    return;
+  }
+
+  /* parse module */
+  try {
+    cout << "[DEBUG] Parse " << module_name << " with libyang" << endl;
+    mod = ctx->parse_module_mem(str.c_str(), LYS_IN_YANG);
+  } catch (const exception &exc) {
+    cerr << "WARN: " << __FILE__
+         << " l." << __LINE__ << " " << exc.what()
+         << endl;
+    return;
+  }
+}
 
 void
 ModuleCallback::module_install(const char *module_name, const char *revision,
                                sr_module_state_t state, void *private_ctx)
 {
   (void)private_ctx;
-  libyang::S_Module mod;
-  LYS_INFORMAT format;
-
-  switch (state) {
-    case SR_MS_UNINSTALLED:
-      cout << "Uninstall module " << module_name << endl;
-      break;
-    case SR_MS_IMPORTED:
-    case SR_MS_IMPLEMENTED:
-      cout << "Install " << module_name << endl;
-      break;
-    default:
-      cerr << "ERROR: Unknown state" << endl;
-  }
 
   if (ctx == nullptr) {
-    cout << "wtf" << endl;
+    cout << "ERROR: Context can not be null" << endl;
+    return;
   }
-  mod = ctx->get_module(module_name, revision);
-  if (mod != nullptr) {
-    cout << "[RUNTIME] Module was already loaded: "
-      << module_name << "@" << revision
-      << endl;
-  } else {
-    cout << "[RUNTIME] Download & parse module: "
-      << module_name << "@" << revision
-      << endl;
 
-    void (** myfunc)(void*, void*);
-    libyang::Context::cpp_mod_missing_cb(module_name, revision, nullptr, nullptr,
-        nullptr, &format, myfunc);
+  switch (state) {
+  case SR_MS_UNINSTALLED:
+    cout << "Uninstall module " << module_name << endl;
+    break;
+
+  case SR_MS_IMPORTED:
+  case SR_MS_IMPLEMENTED:
+    cout << "Install " << module_name << endl;
+    install(module_name, revision);
+    break;
+
+  default:
+    cerr << "ERROR: Unknown state" << endl;
   }
+
 }
-
 
 /*
  * @brief Fetch all modules implemented in sysrepo datastore
@@ -106,7 +138,7 @@ Json::Json(shared_ptr<sysrepo::Session> sess)
   ctx = make_shared<Context>();
 
   /* Instantiate Callback class */
-  scb = make_shared<ModuleCallback>(ctx);
+  scb = make_shared<ModuleCallback>(ctx, sess);
 
   /* 2. get the list of schemas from sysrepo */
   try {
@@ -121,7 +153,7 @@ Json::Json(shared_ptr<sysrepo::Session> sess)
     const char *, const char *) -> libyang::Context::mod_missing_cb_return {
         string str; S_Module mod;
 
-        cout << "Importing missing dependency " << string(mod_name) << endl;
+        cout << "[DEBUG] Importing missing dependency " << mod_name << endl;
         str = this->sr_sess->get_schema(mod_name, mod_rev, NULL, SR_SCHEMA_YANG);
 
         try {
@@ -145,11 +177,11 @@ Json::Json(shared_ptr<sysrepo::Session> sess)
 
     mod = ctx->get_module(module_name.c_str(), revision.c_str());
     if (mod != nullptr) {
-      cout << "Module was already loaded: "
+      cout << "[DEBUG] Module was already loaded: "
            << module_name << "@" << revision
            << endl;
     } else {
-      cout << "Download & parse module: "
+      cout << "[DEBUG] Download & parse module: "
            << module_name << "@" << revision
            << endl;
 
@@ -182,9 +214,7 @@ Json::Json(shared_ptr<sysrepo::Session> sess)
   sub->module_install_subscribe(scb, ctx.get(), SUBSCR_DEFAULT);
 
   ///* 6. subscribe for changes of features state */
-  sub->feature_enable_subscribe(scb);
-
-  while (1);
+  //sub->feature_enable_subscribe(scb);
 }
 
 /*
