@@ -15,7 +15,6 @@ class Json {
     Json(std::shared_ptr<sysrepo::Session> sr_sess);
     ~Json() {std::cout << "Disconnect sysrepo session and Libyang context"
                        << std::endl;}
-    void print_loaded_module();
     void set(std::string data);
 
   private:

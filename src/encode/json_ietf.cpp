@@ -17,7 +17,7 @@ using sysrepo::S_Val;
 using sysrepo::Session;
 using sysrepo::SUBSCR_DEFAULT;
 
-void Json::print_loaded_module()
+void print_loaded_module(std::shared_ptr<libyang::Context> ctx)
 {
   cout << "=================================================="
        << endl;
@@ -114,12 +114,12 @@ ModuleCallback::module_install(const char *module_name, const char *revision,
   case SR_MS_IMPLEMENTED:
     cout << "Install " << module_name << endl;
     install(module_name, revision);
+    print_loaded_module(ctx);
     break;
 
   default:
     cerr << "ERROR: Unknown state" << endl;
   }
-
 }
 
 /*
