@@ -14,7 +14,7 @@ Supported RPCs:
 Supported encoding:
 
 * [x] No encoding
-* [ ] JSON IETF encoding (implies JSON encoding)
+* [X] JSON IETF encoding (implies JSON encoding)
 * [ ] ~~Protobuf encoding~~
 * [ ] ~~Binary encoding~~
 * [ ] ~~ASCII encoding~~
