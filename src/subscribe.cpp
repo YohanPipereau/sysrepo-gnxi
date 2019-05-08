@@ -20,7 +20,7 @@ using google::protobuf::RepeatedPtrField;
  * @param response the SubscribeResponse that is constructed by this function.
  */
 void GNMIServer::BuildNotification(const SubscriptionList& request,
-                       SubscribeResponse& response)
+                                   SubscribeResponse& response)
 {
   Notification *notification = response.mutable_update();
   RepeatedPtrField<Update>* updateList = notification->mutable_update();

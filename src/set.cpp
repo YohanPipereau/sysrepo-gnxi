@@ -93,7 +93,7 @@ Status GNMIServer::Set(ServerContext *context, const SetRequest* request,
                        SetResponse* response)
 {
   std::string prefix = "";
-  (void)context;
+  UNUSED(context);
 
   if (request->extension_size() > 0) {
     cerr << "Extensions not implemented" << endl;
