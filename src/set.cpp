@@ -1,7 +1,7 @@
 /*  vim:set softtabstop=2 shiftwidth=2 tabstop=2 expandtab: */
 
 #include "server.h"
-#include "encode/json_ietf.h"
+#include "encode/encode.h"
 
 using namespace sysrepo;
 
@@ -59,7 +59,7 @@ StatusCode GNMIServer::handleUpdate(Update in, UpdateResult *out, string prefix)
       return StatusCode::UNIMPLEMENTED;
     case gnmi::TypedValue::ValueCase::kJsonIetfVal:
       try {
-        json->set(reqval.json_ietf_val());
+        encodef->getEncoding(JSON)->set(reqval.json_ietf_val());
       } catch (runtime_error &err) {
         //wrong input field must reply an error to gnmi client
         throw std::invalid_argument(err.what());
@@ -82,7 +82,6 @@ StatusCode GNMIServer::handleUpdate(Update in, UpdateResult *out, string prefix)
       throw std::invalid_argument("Unknown value type");
       return StatusCode::INVALID_ARGUMENT;
   }
-
 
   //Fill in Reponse
   out->set_allocated_path(in.release_path());

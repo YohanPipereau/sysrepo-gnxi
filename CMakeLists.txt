@@ -42,6 +42,7 @@ set(GNMI_SRC src/main.cpp
              src/get.cpp
              src/set.cpp
              src/subscribe.cpp
+             src/encode/encode.cpp
              src/encode/json_ietf.cpp
 )
 
