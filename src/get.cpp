@@ -46,11 +46,12 @@ GNMIServer::BuildGetNotification(Notification *notification, const Path *prefix,
 
   fullpath += gnmi_to_xpath(path);
 
-  cout << "DEBUG: Building Notification for " << fullpath << endl;
+  cout << "DEBUG: GetRequest Path " << fullpath << endl;
 
   update = updateList->Add();
   update->mutable_path()->CopyFrom(path);
   gnmival = update->mutable_val();
+
   switch (encoding) {
     case JSON:
       gnmival->mutable_json_ietf_val(); //TODO return a string*
@@ -79,83 +80,73 @@ GNMIServer::BuildGetNotification(Notification *notification, const Path *prefix,
     return;
   }
 
-  cout << "DEBUG: End of Notification" << endl;
+  /* TODO Check DATA TYPE in {ALL,CONFIG,STATE,OPERATIONAL}
+   * This is interesting for NMDA architecture
+   * req->type() : GetRequest_DataType_ALL,CONFIG,STATE,OPERATIONAL
+   */
 
+  cout << "DEBUG: End of Notification" << endl;
 }
 
-/* Implement gNMI Get RPC */
-Status GNMIServer::Get(ServerContext *context, const GetRequest* request,
-                        GetResponse* response)
+/* Verify request fields are correct */
+static inline Status verifyGetRequest(const GetRequest *request)
 {
-  /* Check DATA TYPE in {ALL,CONFIG,STATE,OPERATIONAL} */
-  switch (request->type()) {
-    case GetRequest_DataType_ALL:
-      break;
-
-    case GetRequest_DataType_CONFIG:
-      break;
-
-    case GetRequest_DataType_STATE:
-      break;
-
-    case GetRequest_DataType_OPERATIONAL:
-      break;
-
-    default:
-      cerr << "WARN: invalid Data Type in Get Request" << endl;
-      context->TryCancel();
-      return Status(StatusCode::UNIMPLEMENTED,
-                    grpc::string(GetRequest_DataType_Name(request->type())));
+  if (request->encoding() != JSON) {
+    cerr << "WARN: Unsupported Encoding" << endl;
+    return Status(StatusCode::UNIMPLEMENTED,
+                  grpc::string(Encoding_Name(request->encoding())));
   }
 
-  /* Check Encoding is available */
-  switch (request->encoding()) {
-    case JSON:
-      break;
-
-    default:
-      cerr << "WARN: Unsupported Encoding" << endl;
-      context->TryCancel();
-      return Status(StatusCode::UNIMPLEMENTED,
-                    grpc::string(Encoding_Name(request->encoding())));
+  if (!GetRequest_DataType_IsValid(request->type())) {
+    cerr << "WARN: invalid Data Type in Get Request" << endl;
+    return Status(StatusCode::UNIMPLEMENTED,
+                  grpc::string(GetRequest_DataType_Name(request->type())));
   }
 
   if (request->use_models_size() > 0) {
     cerr << "WARN: Use models feature unsupported, ALL are used" << endl;
-    context->TryCancel();
     return Status(StatusCode::UNIMPLEMENTED,
                   grpc::string("use_model feature unsupported"));
   }
 
   if (request->extension_size() > 0) {
     cerr << "WARN: Use models feature unsupported, ALL are used" << endl;
-    context->TryCancel();
     return Status(StatusCode::UNIMPLEMENTED,
                   grpc::string("extension feature unsupported"));
   }
 
-  cout << "DEBUG: Get RPC"
-       << "\n\tDataType: " << GetRequest::DataType_Name(request->type())
-       << "\n\tEncoding: " << Encoding_Name(request->encoding())
+  return Status::OK;
+}
+
+/* Implement gNMI Get RPC */
+Status GNMIServer::Get(ServerContext *context, const GetRequest* req,
+                        GetResponse* response)
+{
+  RepeatedPtrField<Notification> *notificationList;
+  Notification *notification;
+  Status status;
+
+  verifyGetRequest(req);
+  if (status.error_code() != StatusCode::OK) {
+    context->TryCancel();
+    return status;
+  }
+
+  cout << "DEBUG: GetRequest DataType " << GetRequest::DataType_Name(req->type())
+      << endl;
+
+  cout << "DEBUG: GetRequest Encoding " << Encoding_Name(req->encoding())
        << endl;
 
-  /* handle Paths */
-  RepeatedPtrField<Notification> *notificationList = response->mutable_notification();
-  Notification *notification;
-
-  for (auto path : request->path()) {
-    cout << "\tPath: "
-         << gnmi_to_xpath(request->prefix()) + gnmi_to_xpath(path)
-         << endl;
+  /* Run through all paths */
+  notificationList = response->mutable_notification();
+  for (auto path : req->path()) {
     notification = notificationList->Add();
 
-    if (request->has_prefix())
-      BuildGetNotification(notification, &request->prefix(), path,
-                           request->encoding());
+    if (req->has_prefix())
+      BuildGetNotification(notification, &req->prefix(), path, req->encoding());
     else
-      BuildGetNotification(notification, nullptr, path,
-                           request->encoding());
-
+      BuildGetNotification(notification, nullptr, path, req->encoding());
   }
 
   return Status::OK;
