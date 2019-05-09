@@ -58,7 +58,7 @@ class GNMIServer final : public gNMI::Service
 
   private: /* Get helpers */
     void BuildGetNotification(Notification *notification, const Path *prefix,
-                              Path &path);
+                              Path &path, gnmi::Encoding encoding);
 
   private: /* Subscribe helper */
     void BuildNotification(const SubscriptionList& request,

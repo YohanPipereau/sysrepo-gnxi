@@ -1,22 +1,36 @@
 /*  vim:set softtabstop=2 shiftwidth=2 tabstop=2 expandtab: */
 
 #include <grpc/grpc.h>
+#include <sysrepo-cpp/Struct.hpp>
 
 #include "server.h"
 
 using namespace std;
 using google::protobuf::RepeatedPtrField;
+using sysrepo::S_Val;
+using sysrepo::S_Iter_Value;
 
 /*
  * Build Get Notifications
  * Contrary to Subscribe Notifications, A new notification message must be
- * created for every path of the GetRequest
+ * created for every path of the GetRequest.
+ * There can still be multiple paths in GetResponse if requested path
+ * is a directory path.
+ *
+ * IMPORTANT : we have choosen to have a stateless implementation of
+ * gNMI so deleted path in Notification message will always be empty.
  */
 void
 GNMIServer::BuildGetNotification(Notification *notification, const Path *prefix,
-                                 Path &path)
+                                 Path &path, gnmi::Encoding encoding)
 {
+  /* Data elements that have changed values */
   RepeatedPtrField<Update>* updateList = notification->mutable_update();
+  Update *update;
+  TypedValue *gnmival;
+  string fullpath = "";
+  S_Iter_Value iter;
+  S_Val val;
 
   /* Get time since epoch in milliseconds */
   notification->set_timestamp(get_time_nanosec());
@@ -26,6 +40,33 @@ GNMIServer::BuildGetNotification(Notification *notification, const Path *prefix,
     string str = gnmi_to_xpath(*prefix);
     cerr << "DEBUG: prefix is" << str << endl;
     notification->mutable_prefix()->CopyFrom(*prefix);
+    fullpath += str;
+  }
+
+  fullpath += gnmi_to_xpath(path);
+
+  update = updateList->Add();
+  update->mutable_path()->CopyFrom(path);
+  gnmival = update->mutable_val();
+  switch (encoding) {
+    case JSON:
+      gnmival->mutable_json_ietf_val(); //TODO return a string*
+      break;
+    default:
+      cerr << "ERROR: Unsupported encoding" << endl;
+      return;
+  }
+
+  /* Get sysrepo subtree data corresponding to XPATH */
+  iter = sr_sess->get_items_iter(fullpath.c_str());
+  if (iter == nullptr) { //nothing was found for this xpath
+    cerr << "ERROR: No data in sysrepo for " << fullpath << endl;
+    //TODO throw exception or return error code
+    return;
+  }
+
+  while ((val = sr_sess->get_item_next(iter)) != nullptr) {
+    cout << "DEBUG: " << endl;
   }
 
 }
@@ -79,12 +120,11 @@ Status GNMIServer::Get(ServerContext *context, const GetRequest* request,
     context->TryCancel();
     return Status(StatusCode::UNIMPLEMENTED,
                   grpc::string("extension feature unsupported"));
-
   }
 
-  cout << "DEBUG: Get RPC \n\t"
-       << "DataType: " << GetRequest::DataType_Name(request->type()) << "\n\t"
-       << "Encoding: " << Encoding_Name(request->encoding())
+  cout << "DEBUG: Get RPC"
+       << "\n\tDataType: " << GetRequest::DataType_Name(request->type())
+       << "\n\tEncoding: " << Encoding_Name(request->encoding())
        << endl;
 
   /* handle Paths */
@@ -92,12 +132,17 @@ Status GNMIServer::Get(ServerContext *context, const GetRequest* request,
   Notification *notification;
 
   for (auto path : request->path()) {
+    cout << "\tPath: "
+         << gnmi_to_xpath(request->prefix()) + gnmi_to_xpath(path)
+         << endl;
     notification = notificationList->Add();
 
     if (request->has_prefix())
-      BuildGetNotification(notification, &request->prefix(), path);
+      BuildGetNotification(notification, &request->prefix(), path,
+                           request->encoding());
     else
-      BuildGetNotification(notification, nullptr, path);
+      BuildGetNotification(notification, nullptr, path,
+                           request->encoding());
 
   }
 
