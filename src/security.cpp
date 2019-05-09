@@ -55,13 +55,13 @@ std::shared_ptr<ServerCredentials> ServerSecurityContext::GetCredentials()
   std::shared_ptr<ServerCredentials> servCred;
 
   if (encType == SSL) {
-      servCred = SslCredentialsHelper(private_key_path, chain_certs_path);
-    } else if (encType == INSECURE) {
-        servCred = grpc::InsecureServerCredentials();
-    } else {
-      std::cerr << "Unknown Encryption Type" << std::endl;
-      exit(1);
-    }
+    servCred = SslCredentialsHelper(private_key_path, chain_certs_path);
+  } else if (encType == INSECURE) {
+    servCred = grpc::InsecureServerCredentials();
+  } else {
+    std::cerr << "Unknown Encryption Type" << std::endl;
+    exit(1);
+  }
 
   if (authType == NOAUTH)
     return servCred;
