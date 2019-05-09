@@ -23,13 +23,13 @@ using sysrepo::Connection;
 class GNMIServer final : public gNMI::Service
 {
   public:
-    GNMIServer(string app_name) {
+    GNMIServer(string app) {
       try {
-        sr_con = make_shared<Connection>(app_name.c_str());
+        sr_con = make_shared<Connection>(app.c_str(), SR_CONN_DAEMON_REQUIRED);
         sr_sess = make_shared<Session>(sr_con);
         encodef = make_shared<EncodeFactory>(sr_sess);
       } catch (sysrepo::sysrepo_exception &exc) {
-        cerr << "Error: Connection to sysrepo failed" << exc.what() << endl;
+        cerr << "Error: Connection to sysrepo failed. " << exc.what() << endl;
         exit(1);
       }
     }
