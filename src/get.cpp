@@ -9,6 +9,7 @@ using namespace std;
 using google::protobuf::RepeatedPtrField;
 using sysrepo::S_Val;
 using sysrepo::S_Iter_Value;
+using sysrepo::sysrepo_exception;
 
 /*
  * Build Get Notifications
@@ -45,6 +46,8 @@ GNMIServer::BuildGetNotification(Notification *notification, const Path *prefix,
 
   fullpath += gnmi_to_xpath(path);
 
+  cout << "DEBUG: Building Notification for " << fullpath << endl;
+
   update = updateList->Add();
   update->mutable_path()->CopyFrom(path);
   gnmival = update->mutable_val();
@@ -58,16 +61,25 @@ GNMIServer::BuildGetNotification(Notification *notification, const Path *prefix,
   }
 
   /* Get sysrepo subtree data corresponding to XPATH */
-  iter = sr_sess->get_items_iter(fullpath.c_str());
-  if (iter == nullptr) { //nothing was found for this xpath
-    cerr << "ERROR: No data in sysrepo for " << fullpath << endl;
-    //TODO throw exception or return error code
+  try {
+    iter = sr_sess->get_items_iter(fullpath.c_str());
+    if (iter == nullptr) { //nothing was found for this xpath
+      cerr << "ERROR: No data in sysrepo for " << fullpath << endl;
+      //TODO throw exception or return error code
+      return;
+    }
+
+    while (sr_sess->get_item_next(iter) != nullptr) {
+      cout << "DEBUG: " << endl;
+    }
+  } catch (sysrepo_exception &exc) {
+    cerr << "ERROR: Fail getting items from sysrepo "
+         << "l." << __LINE__ << " " << exc.what()
+         << endl;
     return;
   }
 
-  while ((val = sr_sess->get_item_next(iter)) != nullptr) {
-    cout << "DEBUG: " << endl;
-  }
+  cout << "DEBUG: End of Notification" << endl;
 
 }
 
