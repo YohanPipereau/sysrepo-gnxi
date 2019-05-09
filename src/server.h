@@ -57,8 +57,8 @@ class GNMIServer final : public gNMI::Service
     StatusCode handleUpdate(Update in, UpdateResult *out, string prefix);
 
   private: /* Get helpers */
-    void BuildGetNotification(Notification *notification, const Path *prefix,
-                              Path &path, gnmi::Encoding encoding);
+    grpc::Status BuildGetNotification(Notification *notification, const Path *prefix,
+                                      Path &path, gnmi::Encoding encoding);
 
   private: /* Subscribe helper */
     void BuildNotification(const SubscriptionList& request,

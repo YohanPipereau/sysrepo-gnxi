@@ -21,7 +21,7 @@ using sysrepo::sysrepo_exception;
  * IMPORTANT : we have choosen to have a stateless implementation of
  * gNMI so deleted path in Notification message will always be empty.
  */
-void
+Status
 GNMIServer::BuildGetNotification(Notification *notification, const Path *prefix,
                                  Path &path, gnmi::Encoding encoding)
 {
@@ -45,39 +45,35 @@ GNMIServer::BuildGetNotification(Notification *notification, const Path *prefix,
   }
 
   fullpath += gnmi_to_xpath(path);
-
   cout << "DEBUG: GetRequest Path " << fullpath << endl;
 
+  /* Create Update message */
   update = updateList->Add();
   update->mutable_path()->CopyFrom(path);
   gnmival = update->mutable_val();
 
-  switch (encoding) {
-    case JSON:
-      gnmival->mutable_json_ietf_val(); //TODO return a string*
-      break;
-    default:
-      cerr << "ERROR: Unsupported encoding" << endl;
-      return;
+  /* Create appropriate TypedValue message based on encoding */
+  if (encoding == JSON) {
+    gnmival->mutable_json_ietf_val(); //TODO return a string*
+  } else {
+    return Status(StatusCode::UNIMPLEMENTED, Encoding_Name(encoding));
   }
 
   /* Get sysrepo subtree data corresponding to XPATH */
   try {
     iter = sr_sess->get_items_iter(fullpath.c_str());
-    if (iter == nullptr) { //nothing was found for this xpath
-      cerr << "ERROR: No data in sysrepo for " << fullpath << endl;
-      //TODO throw exception or return error code
-      return;
-    }
+    if (iter == nullptr) //nothing was found for this xpath
+      return Status(StatusCode::NOT_FOUND, fullpath);
 
     while (sr_sess->get_item_next(iter) != nullptr) {
       cout << "DEBUG: " << endl;
+      //TODO
     }
   } catch (sysrepo_exception &exc) {
     cerr << "ERROR: Fail getting items from sysrepo "
          << "l." << __LINE__ << " " << exc.what()
          << endl;
-    return;
+    return Status(StatusCode::INVALID_ARGUMENT, exc.what());
   }
 
   /* TODO Check DATA TYPE in {ALL,CONFIG,STATE,OPERATIONAL}
@@ -86,6 +82,8 @@ GNMIServer::BuildGetNotification(Notification *notification, const Path *prefix,
    */
 
   cout << "DEBUG: End of Notification" << endl;
+
+  return Status::OK;
 }
 
 /* Verify request fields are correct */
@@ -93,14 +91,13 @@ static inline Status verifyGetRequest(const GetRequest *request)
 {
   if (request->encoding() != JSON) {
     cerr << "WARN: Unsupported Encoding" << endl;
-    return Status(StatusCode::UNIMPLEMENTED,
-                  grpc::string(Encoding_Name(request->encoding())));
+    return Status(StatusCode::UNIMPLEMENTED, Encoding_Name(request->encoding()));
   }
 
   if (!GetRequest_DataType_IsValid(request->type())) {
     cerr << "WARN: invalid Data Type in Get Request" << endl;
     return Status(StatusCode::UNIMPLEMENTED,
-                  grpc::string(GetRequest_DataType_Name(request->type())));
+                  GetRequest_DataType_Name(request->type()));
   }
 
   if (request->use_models_size() > 0) {
@@ -110,7 +107,7 @@ static inline Status verifyGetRequest(const GetRequest *request)
   }
 
   if (request->extension_size() > 0) {
-    cerr << "WARN: Use models feature unsupported, ALL are used" << endl;
+    cerr << "WARN: extension unsupported" << endl;
     return Status(StatusCode::UNIMPLEMENTED,
                   grpc::string("extension feature unsupported"));
   }
@@ -122,15 +119,14 @@ static inline Status verifyGetRequest(const GetRequest *request)
 Status GNMIServer::Get(ServerContext *context, const GetRequest* req,
                         GetResponse* response)
 {
+  UNUSED(context);
   RepeatedPtrField<Notification> *notificationList;
   Notification *notification;
   Status status;
 
-  verifyGetRequest(req);
-  if (status.error_code() != StatusCode::OK) {
-    context->TryCancel();
+  status = verifyGetRequest(req);
+  if (!status.ok())
     return status;
-  }
 
   cout << "DEBUG: GetRequest DataType " << GetRequest::DataType_Name(req->type())
       << endl;
@@ -144,9 +140,14 @@ Status GNMIServer::Get(ServerContext *context, const GetRequest* req,
     notification = notificationList->Add();
 
     if (req->has_prefix())
-      BuildGetNotification(notification, &req->prefix(), path, req->encoding());
+      status = BuildGetNotification(notification, &req->prefix(), path, req->encoding());
     else
-      BuildGetNotification(notification, nullptr, path, req->encoding());
+      status = BuildGetNotification(notification, nullptr, path, req->encoding());
+
+    if (!status.ok()) {
+      cerr << "ERROR" << status.error_code() << status.error_message() << endl;
+      return status;
+    }
   }
 
   return Status::OK;
