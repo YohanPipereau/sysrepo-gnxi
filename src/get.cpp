@@ -59,15 +59,23 @@ GNMIServer::BuildGetNotification(Notification *notification, const Path *prefix,
     return Status(StatusCode::UNIMPLEMENTED, Encoding_Name(encoding));
   }
 
+  /* Refresh configuration data from current session */
+  sr_sess->refresh();
+
+  /* This is a mistery why appending this magic "//." string made it work */
+  fullpath += "//.";
+
   /* Get sysrepo subtree data corresponding to XPATH */
   try {
     iter = sr_sess->get_items_iter(fullpath.c_str());
-    if (iter == nullptr) //nothing was found for this xpath
+    if (iter == nullptr) { //nothing was found for this xpath
+      cerr << "ERROR: XPATH " << fullpath << " not found" << endl;
       return Status(StatusCode::NOT_FOUND, fullpath);
+    }
 
-    while (sr_sess->get_item_next(iter) != nullptr) {
-      cout << "DEBUG: " << endl;
-      //TODO
+    while ((val = sr_sess->get_item_next(iter)) != nullptr) {
+      cout << "DEBUG: " << val->to_string() << flush;
+
     }
   } catch (sysrepo_exception &exc) {
     cerr << "ERROR: Fail getting items from sysrepo "

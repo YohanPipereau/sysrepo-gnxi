@@ -215,3 +215,48 @@ void Json::set(string data)
     }
   }
 }
+
+/*
+ * We need to create a libyang::Data_Node
+ * @param val a sysrepo::Value fetch from sysrepo datastore
+ */
+void Json::get(sysrepo::S_Val val)
+{
+
+  /* Create the new node */
+  switch (val->type()) {
+    case SR_STRING_T:
+    case SR_BINARY_T:
+    case SR_BITS_T:
+    case SR_ENUM_T:
+    case SR_IDENTITYREF_T:
+    case SR_INSTANCEID_T:
+    case SR_LEAF_EMPTY_T:
+    case SR_BOOL_T:
+    case SR_DECIMAL64_T:
+    case SR_UINT8_T:
+    case SR_UINT16_T:
+    case SR_UINT32_T:
+    case SR_UINT64_T:
+    case SR_INT8_T:
+    case SR_INT16_T:
+    case SR_INT32_T:
+    case SR_INT64_T:
+        //val_str = op_get_srval(np2srv.ly_ctx, sr_val, numstr);
+        //node = lyd_new_leaf(parent, mod, cache->items[cache->used - 1].name, val_str);
+        break;
+    case SR_ANYDATA_T:
+    case SR_ANYXML_T:
+        //val_str = op_get_srval(np2srv.ly_ctx, sr_val, numstr);
+        //node = lyd_new_anydata(parent, mod, cache->items[cache->used - 1].name, val_str, LYD_ANYDATA_SXML);
+        break;
+    case SR_LIST_T:
+    case SR_CONTAINER_T:
+    case SR_CONTAINER_PRESENCE_T:
+        //node = lyd_new(parent, mod, cache->items[cache->used - 1].name);
+        break;
+    default:
+        cerr << "ERROR: Unknown" << endl;
+        return;
+    }
+}
