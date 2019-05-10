@@ -8,30 +8,35 @@
 
 #include "../proto/gnmi.pb.h" //for gnmi::Encoding
 
-/* Interface for Encodings
- * All encodings inherits from this class to implement their set/get encoding
+using std::shared_ptr;
+
+/*
+ * Abstract Top class for Encodings
+ * All encodings inherits from this class which also provide helpers
  * specific
  */
 class Encode {
   public:
+    Encode(std::shared_ptr<sysrepo::Session> sess) : sr_sess(sess) {}
     virtual void set(std::string data) = 0;
-    virtual void get(sysrepo::S_Val val) = 0;
+
+  protected:
+    void storeTree(libyang::S_Data_Node node);
+    void storeLeaf(libyang::S_Data_Node_Leaf_List node);
+
+  protected:
+    std::shared_ptr<sysrepo::Session> sr_sess;
 };
 
 /* Class for JSON IETF encoding */
 class Json : public Encode {
   public:
-    Json(std::shared_ptr<libyang::Context> lctx,
-         std::shared_ptr<sysrepo::Session> sess) : ctx(lctx), sr_sess(sess) {}
+    Json(shared_ptr<libyang::Context> lctx,shared_ptr<sysrepo::Session> sess)
+        : Encode(sess), ctx(lctx) {}
     void set(std::string data) override;
-    void get(sysrepo::S_Val val) override;
-
-  private:
-    void setAtomic(libyang::S_Data_Node_Leaf_List node);
 
   private:
     std::shared_ptr<libyang::Context> ctx;
-    std::shared_ptr<sysrepo::Session> sr_sess;
 };
 
 /*

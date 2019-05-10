@@ -30,7 +30,11 @@ static bool isKey(S_Data_Node_Leaf_List leaf)
     return false;
 }
 
-void Json::setAtomic(libyang::S_Data_Node_Leaf_List node)
+/*
+ * Store YANG leaf in sysrepo datastore
+ * @param node Describe a libyang Data Tree leaf or leaf list
+ */
+void Encode::storeLeaf(libyang::S_Data_Node_Leaf_List node)
 {
   shared_ptr<Val> sval;
 
@@ -120,8 +124,7 @@ void Json::setAtomic(libyang::S_Data_Node_Leaf_List node)
       //run again this function
       S_Data_Node_Leaf_List leaf
         = make_shared<Data_Node_Leaf_List>(node->value()->leafref());
-
-      setAtomic(leaf);
+      storeLeaf(leaf);
       break;
     }
 
@@ -161,16 +164,8 @@ void Json::setAtomic(libyang::S_Data_Node_Leaf_List node)
   }
 }
 
-/* Parse a message encoded in JSON IETF
- * @param data Input data encoded in JSON
- */
-void Json::set(string data)
+void Encode::storeTree(libyang::S_Data_Node node)
 {
-  S_Data_Node node;
-
-  /* Parse input JSON, same options than netopeer2 edit-config */
-  node = ctx->parse_data_mem(data.c_str(), LYD_JSON, LYD_OPT_EDIT |
-                                                     LYD_OPT_STRICT);
   for (auto it : node->tree_dfs()) {
     /* Run through the entire tree, including siblinigs */
 
@@ -180,12 +175,12 @@ void Json::set(string data)
           S_Data_Node_Leaf_List itleaf = make_shared<Data_Node_Leaf_List>(it);
 
           try {
-            setAtomic(itleaf);
+            storeLeaf(itleaf);
           } catch (std::string str) { //triggered by sysepo::Val constructor
             cerr << "ERROR:" << str << endl;
             throw invalid_argument("Internal error with JSON encoding");
           }
-        break;
+          break;
         }
 
       case LYS_LEAFLIST: //Only LEAF & LEAF LIST hold values in sysrepo
@@ -217,46 +212,62 @@ void Json::set(string data)
 }
 
 /*
- * We need to create a libyang::Data_Node
+ * Parse a message encoded in JSON IETF and set fields in sysrepo.
+ * @param data Input data encoded in JSON
+ */
+void Json::set(string data)
+{
+  S_Data_Node node;
+
+  /* Parse input JSON, same options than netopeer2 edit-config */
+  node = ctx->parse_data_mem(data.c_str(), LYD_JSON, LYD_OPT_EDIT |
+                                                     LYD_OPT_STRICT);
+
+  /* store Data Tree to sysrepo */
+  storeTree(node);
+}
+
+/*
+ * Convert a sysrepo::S_Val to its libyang::Data_Node
  * @param val a sysrepo::Value fetch from sysrepo datastore
  */
-void Json::get(sysrepo::S_Val val)
-{
-
-  /* Create the new node */
-  switch (val->type()) {
-    case SR_STRING_T:
-    case SR_BINARY_T:
-    case SR_BITS_T:
-    case SR_ENUM_T:
-    case SR_IDENTITYREF_T:
-    case SR_INSTANCEID_T:
-    case SR_LEAF_EMPTY_T:
-    case SR_BOOL_T:
-    case SR_DECIMAL64_T:
-    case SR_UINT8_T:
-    case SR_UINT16_T:
-    case SR_UINT32_T:
-    case SR_UINT64_T:
-    case SR_INT8_T:
-    case SR_INT16_T:
-    case SR_INT32_T:
-    case SR_INT64_T:
-        //val_str = op_get_srval(np2srv.ly_ctx, sr_val, numstr);
-        //node = lyd_new_leaf(parent, mod, cache->items[cache->used - 1].name, val_str);
-        break;
-    case SR_ANYDATA_T:
-    case SR_ANYXML_T:
-        //val_str = op_get_srval(np2srv.ly_ctx, sr_val, numstr);
-        //node = lyd_new_anydata(parent, mod, cache->items[cache->used - 1].name, val_str, LYD_ANYDATA_SXML);
-        break;
-    case SR_LIST_T:
-    case SR_CONTAINER_T:
-    case SR_CONTAINER_PRESENCE_T:
-        //node = lyd_new(parent, mod, cache->items[cache->used - 1].name);
-        break;
-    default:
-        cerr << "ERROR: Unknown" << endl;
-        return;
-    }
-}
+//libyang::Data_Node Sr2ly::val(sysrepo::S_Val val)
+//{
+//  /* Create the new node */
+//  switch (val->type()) {
+//    case SR_STRING_T:
+//    case SR_BINARY_T:
+//    case SR_BITS_T:
+//    case SR_ENUM_T:
+//    case SR_IDENTITYREF_T:
+//    case SR_INSTANCEID_T:
+//    case SR_LEAF_EMPTY_T:
+//    case SR_BOOL_T:
+//    case SR_DECIMAL64_T:
+//    case SR_UINT8_T:
+//    case SR_UINT16_T:
+//    case SR_UINT32_T:
+//    case SR_UINT64_T:
+//    case SR_INT8_T:
+//    case SR_INT16_T:
+//    case SR_INT32_T:
+//    case SR_INT64_T:
+//        //Create new leaf
+//        //node = Data_Node(parent, mod, ,
+//        //                    val->to_string().c_str());
+//        break;
+//    case SR_ANYDATA_T:
+//    case SR_ANYXML_T:
+//        //val_str = op_get_srval(np2srv.ly_ctx, sr_val, numstr);
+//        //node = lyd_new_anydata(parent, mod, cache->items[cache->used - 1].name, val_str, LYD_ANYDATA_SXML);
+//        break;
+//    case SR_LIST_T:
+//    case SR_CONTAINER_T:
+//    case SR_CONTAINER_PRESENCE_T:
+//        //node = lyd_new(parent, mod, cache->items[cache->used - 1].name);
+//        break;
+//    default:
+//        cerr << "ERROR: Unknown" << endl;
+//        return;
+//    }
+//}

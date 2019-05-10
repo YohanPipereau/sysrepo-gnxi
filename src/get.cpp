@@ -75,6 +75,7 @@ GNMIServer::BuildGetNotification(Notification *notification, const Path *prefix,
 
     while ((val = sr_sess->get_item_next(iter)) != nullptr) {
       cout << "DEBUG: " << val->to_string() << flush;
+      //TODO
 
     }
   } catch (sysrepo_exception &exc) {
