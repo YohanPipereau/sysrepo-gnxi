@@ -215,7 +215,7 @@ void Encode::storeTree(libyang::S_Data_Node node)
  * Parse a message encoded in JSON IETF and set fields in sysrepo.
  * @param data Input data encoded in JSON
  */
-void Json::set(string data)
+void Json::update(string data)
 {
   S_Data_Node node;
 

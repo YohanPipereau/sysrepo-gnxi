@@ -11,6 +11,18 @@
 using std::shared_ptr;
 
 /*
+ * Encode directory aims at providing a CRUD wrapper on top of sysrepo
+ * for JSON encoding (other encodings can be added).
+ * It provides YANG validation before storing elements and after fetching them
+ * in sysrepo.
+ *
+ * -update()  CREATE & UPDATE
+ * -read()    READ //TODO
+ * -delete()  DELETE //TODO
+ *
+ */
+
+/*
  * Abstract Top class for Encodings
  * All encodings inherits from this class which also provide helpers
  * specific
@@ -18,7 +30,7 @@ using std::shared_ptr;
 class Encode {
   public:
     Encode(std::shared_ptr<sysrepo::Session> sess) : sr_sess(sess) {}
-    virtual void set(std::string data) = 0;
+    virtual void update(std::string data) = 0;
 
   protected:
     void storeTree(libyang::S_Data_Node node);
@@ -33,7 +45,7 @@ class Json : public Encode {
   public:
     Json(shared_ptr<libyang::Context> lctx,shared_ptr<sysrepo::Session> sess)
         : Encode(sess), ctx(lctx) {}
-    void set(std::string data) override;
+    void update(std::string data) override;
 
   private:
     std::shared_ptr<libyang::Context> ctx;
