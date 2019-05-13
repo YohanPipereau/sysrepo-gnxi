@@ -213,8 +213,9 @@ EncodeFactory::~EncodeFactory()
   cout << "Disconnect sysrepo session and Libyang context" << endl;
 }
 
-unique_ptr<Encode> EncodeFactory::getEncoding(gnmi::Encoding encoding) {
-  if (encoding == gnmi::Encoding::JSON) {
+unique_ptr<Encode> EncodeFactory::getEncoding(EncodeFactory::Encoding encoding)
+{
+  if (encoding == EncodeFactory::Encoding::JSON) {
     cout << "DEBUG: Creating JSON object" << endl;
     return unique_ptr<Encode>(new Json(ctx, sr_sess));
   } else {

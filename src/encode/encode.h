@@ -6,8 +6,6 @@
 #include <libyang/Libyang.hpp>
 #include <sysrepo-cpp/Session.hpp>
 
-#include "../proto/gnmi.pb.h" //for gnmi::Encoding
-
 using std::shared_ptr;
 
 /*
@@ -59,7 +57,11 @@ class EncodeFactory {
   public:
     EncodeFactory(std::shared_ptr<sysrepo::Session> sr_sess);
     ~EncodeFactory();
-    std::unique_ptr<Encode> getEncoding(gnmi::Encoding encoding);
+    /* Supported Encodings */
+    enum Encoding {
+      JSON = 0,
+    };
+    std::unique_ptr<Encode> getEncoding(EncodeFactory::Encoding encoding);
 
   private:
     std::shared_ptr<libyang::Context> ctx;
