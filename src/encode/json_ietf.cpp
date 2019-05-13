@@ -14,6 +14,7 @@ using namespace libyang;
 
 using sysrepo::Val;
 using sysrepo::S_Val;
+using sysrepo::S_Iter_Value;
 
 /*
  * Wrapper to test wether the current Data Node is a key.
@@ -225,6 +226,28 @@ void Json::update(string data)
 
   /* store Data Tree to sysrepo */
   storeTree(node);
+}
+
+/* Get sysrepo subtree data corresponding to XPATH */
+string Json::read(string xpath)
+{
+  S_Iter_Value iter;
+  S_Val val;
+
+  /* Get Iterator for all subelements from xpath */
+  iter = sr_sess->get_items_iter(xpath.c_str());
+  if (iter == nullptr) // nothing was found for this xpath
+    throw invalid_argument("xpath " + xpath + " not found");
+
+  /* Get value for each subelement */
+  while ((val = sr_sess->get_item_next(iter)) != nullptr) {
+    cout << "DEBUG: " << val->to_string() << flush;
+    //TODO
+  }
+
+  /* Encode all this values in JSON */
+
+  return ""; //TODO
 }
 
 /*

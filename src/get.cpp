@@ -1,14 +1,11 @@
 /*  vim:set softtabstop=2 shiftwidth=2 tabstop=2 expandtab: */
 
 #include <grpc/grpc.h>
-#include <sysrepo-cpp/Struct.hpp>
 
 #include "server.h"
 
 using namespace std;
 using google::protobuf::RepeatedPtrField;
-using sysrepo::S_Val;
-using sysrepo::S_Iter_Value;
 using sysrepo::sysrepo_exception;
 
 /*
@@ -30,8 +27,6 @@ GNMIServer::BuildGetNotification(Notification *notification, const Path *prefix,
   Update *update;
   TypedValue *gnmival;
   string fullpath = "";
-  S_Iter_Value iter;
-  S_Val val;
 
   /* Get time since epoch in milliseconds */
   notification->set_timestamp(get_time_nanosec());
@@ -52,38 +47,31 @@ GNMIServer::BuildGetNotification(Notification *notification, const Path *prefix,
   update->mutable_path()->CopyFrom(path);
   gnmival = update->mutable_val();
 
-  /* Create appropriate TypedValue message based on encoding */
-  if (encoding == JSON) {
-    gnmival->mutable_json_ietf_val(); //TODO return a string*
-  } else {
-    return Status(StatusCode::UNIMPLEMENTED, Encoding_Name(encoding));
-  }
-
   /* Refresh configuration data from current session */
   sr_sess->refresh();
 
   /* This is a mistery why appending this magic "//." string made it work */
   fullpath += "//.";
 
-  /* Get sysrepo subtree data corresponding to XPATH */
-  try {
-    iter = sr_sess->get_items_iter(fullpath.c_str());
-    if (iter == nullptr) { //nothing was found for this xpath
-      cerr << "ERROR: XPATH " << fullpath << " not found" << endl;
-      return Status(StatusCode::NOT_FOUND, fullpath);
+  /* Create appropriate TypedValue message based on encoding */
+  if (encoding == JSON) {
+    gnmival->mutable_json_ietf_val(); //TODO return a string*
+    /* Get sysrepo subtree data corresponding to XPATH */
+    try {
+      string tmp = encodef->getEncoding(EncodeFactory::Encoding::JSON)->read(fullpath);
+      cout << tmp << endl;
+    } catch (invalid_argument &exc) {
+      return Status(StatusCode::NOT_FOUND, exc.what());
+    } catch (sysrepo_exception &exc) {
+      cerr << "ERROR: Fail getting items from sysrepo "
+           << "l." << __LINE__ << " " << exc.what()
+           << endl;
+      return Status(StatusCode::INVALID_ARGUMENT, exc.what());
     }
-
-    while ((val = sr_sess->get_item_next(iter)) != nullptr) {
-      cout << "DEBUG: " << val->to_string() << flush;
-      //TODO
-
-    }
-  } catch (sysrepo_exception &exc) {
-    cerr << "ERROR: Fail getting items from sysrepo "
-         << "l." << __LINE__ << " " << exc.what()
-         << endl;
-    return Status(StatusCode::INVALID_ARGUMENT, exc.what());
+  } else {
+    return Status(StatusCode::UNIMPLEMENTED, Encoding_Name(encoding));
   }
+
 
   /* TODO Check DATA TYPE in {ALL,CONFIG,STATE,OPERATIONAL}
    * This is interesting for NMDA architecture
