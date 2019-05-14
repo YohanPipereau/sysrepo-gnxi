@@ -142,7 +142,10 @@ Status GNMIServer::Get(ServerContext *context, const GetRequest* req,
       status = BuildGetNotification(notification, nullptr, path, req->encoding());
 
     if (!status.ok()) {
-      cerr << "ERROR" << status.error_code() << status.error_message() << endl;
+      cerr << "ERROR:"
+           << " Errcode=" << status.error_code()
+           << " Errmessage=" << status.error_message()
+           << endl;
       return status;
     }
   }
