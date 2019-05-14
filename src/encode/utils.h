@@ -61,7 +61,7 @@ class XpathParser {
     libyang::S_Data_Node to_lynode(sysrepo::S_Val val);
 
   private:
-    std::shared_ptr<XpathNode> parse_node(std::string xpath);
+    std::shared_ptr<XpathNode> parse_node(std::string &xpath);
     libyang::S_Data_Node search_parent_of(XpathNode node);
     libyang::S_Data_Node create_node(sysrepo::S_Val val,
                                      libyang::S_Data_Node parent,

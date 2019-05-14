@@ -65,7 +65,7 @@ _parse_node(const char *xpath, const char **mod, int *mod_len,
  * C++ wrapper for _parse_node
  * TODO: remove the C function and use 100% c++
  */
-shared_ptr<XpathNode> XpathParser::parse_node(string xpath)
+shared_ptr<XpathNode> XpathParser::parse_node(string &xpath)
 {
   const char *new_xpath;
   const char *mod, *node, *pred;
@@ -208,6 +208,11 @@ XpathParser::to_lynode(sysrepo::S_Val val)
     }
 
     /* Create node */
+    if (parent)
+      cout << "RUNTIME: " << parent->path() << endl;
+
+    cout << "RUNTIME: " << xpathNode->getnode() << endl;
+
     try {
       node = create_node(val, parent, module, xpathNode->getnode());
     } catch (exception &exc) {
