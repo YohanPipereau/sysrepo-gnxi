@@ -7,7 +7,14 @@
 using namespace std;
 using libyang::Data_Node;
 
-/* C implementation from netopeer2 */
+/* C implementation copied from netopeer2
+ *
+ * valid xpaths:
+ *    /node
+ *    /node[pred]
+ *    /module:node
+ *    /module:node[pred]
+ */
 static const char *
 _parse_node(const char *xpath, const char **mod, int *mod_len,
            const char **name, int *name_len,
@@ -209,9 +216,9 @@ XpathParser::to_lynode(sysrepo::S_Val val)
 
     /* Create node */
     if (parent)
-      cout << "RUNTIME: " << parent->path() << endl;
+      cout << "RUNTIME: parent " << parent->path() << endl;
 
-    cout << "RUNTIME: " << xpathNode->getnode() << endl;
+    cout << "RUNTIME: node" << xpathNode->getnode() << endl;
 
     try {
       node = create_node(val, parent, module, xpathNode->getnode());

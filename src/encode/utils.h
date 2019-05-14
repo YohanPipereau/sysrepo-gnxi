@@ -48,7 +48,6 @@ class XpathNode {
  * XpathCache - Map caching Data tree Node previously populated
  */
 typedef std::list<std::pair<XpathNode, libyang::S_Data_Node>> XpathCache;
-typedef std::list<std::pair<XpathNode, libyang::S_Data_Node>> XpathCache;
 
 /**
  * XpathParser -
