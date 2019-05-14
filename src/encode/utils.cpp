@@ -181,16 +181,20 @@ libyang::S_Data_Node XpathParser::search_parent_of(XpathNode node)
   return parent;
 }
 
-/* Create module, either specified else default to parent's module */
-libyang::S_Module
+/* compute_module - Compute module of current xpathNode
+ * It is either already in xpathNode, else it needs to be inherited from parent
+ * @param xpathNode - node we want to know the module
+ * @param parent - parent module to do the compute
+ * @return module of this xpatNode
+ */
+inline libyang::S_Module
 XpathParser::compute_module(shared_ptr<XpathNode> xpathNode, S_Data_Node parent)
 {
   libyang::S_Module module;
 
   if (xpathNode->getmodule().empty()) { //no module in node, use parent's
     if (parent == nullptr) {
-      cerr << "ERROR: invalid xpath" << endl;
-      return nullptr;
+      throw invalid_argument("Neither current node nor parent node have module");
     } else { // use parent module
       xpathNode->setmodule(parent->node_module()->name());
       return parent->node_module();
@@ -226,12 +230,12 @@ XpathParser::to_lynode(sysrepo::S_Val val)
 
     module = compute_module(xpathNode, parent);
 
-    /* Create node */
     if (parent)
       cout << "RUNTIME: parent " << parent->path() << endl;
 
     cout << "RUNTIME: node" << xpathNode->getnode() << endl;
 
+    /* Create node */
     try {
       node = create_node(val, parent, module, xpathNode->getnode());
     } catch (exception &exc) {
