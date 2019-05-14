@@ -48,6 +48,9 @@ class Json : public Encode {
     std::string read(std::string xpath);
 
   private:
+    libyang::S_Data_Node create_root_node(std::string xpath);
+
+  private:
     std::shared_ptr<libyang::Context> ctx;
 };
 

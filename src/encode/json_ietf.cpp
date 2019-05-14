@@ -8,6 +8,7 @@
 #include <libyang/Tree_Data.hpp>
 
 #include "encode.h"
+#include "utils.h"
 
 using namespace std;
 using namespace libyang;
@@ -15,6 +16,10 @@ using namespace libyang;
 using sysrepo::Val;
 using sysrepo::S_Val;
 using sysrepo::S_Iter_Value;
+
+/*****************
+ * CRUD - UPDATE *
+ *****************/
 
 /*
  * Wrapper to test wether the current Data Node is a key.
@@ -228,69 +233,32 @@ void Json::update(string data)
   storeTree(node);
 }
 
+/***************
+ * CRUD - READ *
+ ***************/
+
 /* Get sysrepo subtree data corresponding to XPATH */
 string Json::read(string xpath)
 {
   S_Iter_Value iter;
   S_Val val;
+  libyang::S_Data_Node node;
+  XpathParser parser(ctx);
 
   /* Get Iterator for all subelements from xpath */
   iter = sr_sess->get_items_iter(xpath.c_str());
   if (iter == nullptr) // nothing was found for this xpath
     throw invalid_argument("xpath " + xpath + " not found");
 
-  /* Get value for each subelement */
+  /* Get value for each subelement and append it to Data Tree */
   while ((val = sr_sess->get_item_next(iter)) != nullptr) {
     cout << "DEBUG: " << val->to_string() << flush;
+
+    node = parser.to_lynode(val);
+    cout << "DEBUG: json:" << node->print_mem(LYD_JSON, LYP_WD_EXPLICIT) << endl;
+
     //TODO
   }
 
-  /* Encode all this values in JSON */
-
   return ""; //TODO
 }
-
-/*
- * Convert a sysrepo::S_Val to its libyang::Data_Node
- * @param val a sysrepo::Value fetch from sysrepo datastore
- */
-//libyang::Data_Node Sr2ly::val(sysrepo::S_Val val)
-//{
-//  /* Create the new node */
-//  switch (val->type()) {
-//    case SR_STRING_T:
-//    case SR_BINARY_T:
-//    case SR_BITS_T:
-//    case SR_ENUM_T:
-//    case SR_IDENTITYREF_T:
-//    case SR_INSTANCEID_T:
-//    case SR_LEAF_EMPTY_T:
-//    case SR_BOOL_T:
-//    case SR_DECIMAL64_T:
-//    case SR_UINT8_T:
-//    case SR_UINT16_T:
-//    case SR_UINT32_T:
-//    case SR_UINT64_T:
-//    case SR_INT8_T:
-//    case SR_INT16_T:
-//    case SR_INT32_T:
-//    case SR_INT64_T:
-//        //Create new leaf
-//        //node = Data_Node(parent, mod, ,
-//        //                    val->to_string().c_str());
-//        break;
-//    case SR_ANYDATA_T:
-//    case SR_ANYXML_T:
-//        //val_str = op_get_srval(np2srv.ly_ctx, sr_val, numstr);
-//        //node = lyd_new_anydata(parent, mod, cache->items[cache->used - 1].name, val_str, LYD_ANYDATA_SXML);
-//        break;
-//    case SR_LIST_T:
-//    case SR_CONTAINER_T:
-//    case SR_CONTAINER_PRESENCE_T:
-//        //node = lyd_new(parent, mod, cache->items[cache->used - 1].name);
-//        break;
-//    default:
-//        cerr << "ERROR: Unknown" << endl;
-//        return;
-//    }
-//}
