@@ -66,6 +66,8 @@ class XpathParser {
                                      libyang::S_Data_Node parent,
                                      libyang::S_Module module,
                                      std::string node_name);
+    libyang::S_Module compute_module(std::shared_ptr<XpathNode> xpathNode,
+                                     libyang::S_Data_Node parent);
 
   private:
     XpathCache cache;

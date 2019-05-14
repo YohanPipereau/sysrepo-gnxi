@@ -6,6 +6,7 @@
 
 using namespace std;
 using libyang::Data_Node;
+using libyang::S_Data_Node;
 
 /* C implementation copied from netopeer2
  *
@@ -180,6 +181,25 @@ libyang::S_Data_Node XpathParser::search_parent_of(XpathNode node)
   return parent;
 }
 
+/* Create module, either specified else default to parent's module */
+libyang::S_Module
+XpathParser::compute_module(shared_ptr<XpathNode> xpathNode, S_Data_Node parent)
+{
+  libyang::S_Module module;
+
+  if (xpathNode->getmodule().empty()) { //no module in node, use parent's
+    if (parent == nullptr) {
+      cerr << "ERROR: invalid xpath" << endl;
+      return nullptr;
+    } else { // use parent module
+      xpathNode->setmodule(parent->node_module()->name());
+      return parent->node_module();
+    }
+  } else { // use module from current node
+    return ctx->get_module(xpathNode->getmodule().c_str());
+  }
+}
+
 /*
  * Given a YANG XPATH, return the Data Tree node.
  */
@@ -198,21 +218,13 @@ XpathParser::to_lynode(sysrepo::S_Val val)
 
   /* Run trough all nodes of the xpath */
   while ((xpathNode = parse_node(xpath)) != nullptr) {
-    cout << "DEBUG: " << __FUNCTION__ << " xpathNode: " << xpathNode->to_string() << endl;
+
+    cout << "DEBUG: " << __FUNCTION__ << " xpathNode: "
+         << xpathNode->to_string() << endl;
+
     parent = search_parent_of(*xpathNode);
 
-    /* Create module, either specified else default to parent's module */
-    if (xpathNode->getmodule().empty()) { //no module in node, use parent's
-      if (parent == nullptr) {
-        cerr << "ERROR: invalid xpath" << endl;
-        return nullptr;
-      } else { // use parent module
-        module = parent->node_module();
-        xpathNode->setmodule(parent->node_module()->name());
-      }
-    } else { // use module from current node
-      module = ctx->get_module(xpathNode->getmodule().c_str());
-    }
+    module = compute_module(xpathNode, parent);
 
     /* Create node */
     if (parent)
