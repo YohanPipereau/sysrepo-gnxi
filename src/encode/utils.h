@@ -5,6 +5,7 @@
 
 #include <libyang/Tree_Data.hpp>
 #include <sysrepo-cpp/Tree.hpp>
+#include <sysrepo-cpp/Struct.hpp>
 
 /**
  * XpathParser -
@@ -17,11 +18,11 @@ class XpathParser {
     libyang::S_Data_Node create_ly_tree(sysrepo::S_Tree tree);
 
   private:
-    libyang::S_Data_Node create_ly_root_node(sysrepo::S_Tree tree);
+    void build_tree(sysrepo::S_Tree tree, libyang::S_Data_Node node);
     libyang::S_Data_Node create_ly_node(sysrepo::S_Tree tree,
                                         libyang::S_Data_Node parent,
                                         libyang::S_Module module,
-                                        std::string node_name);
+                                        const char *node_name);
 
   private:
     libyang::S_Context ctx;

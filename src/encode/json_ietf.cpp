@@ -258,8 +258,10 @@ string Json::read(string xpath)
   cout << "DEBUG: \n" << sr_tree->to_string(10) << endl;
 
 
-  //ly_tree = parser.create_ly_tree(sr_tree);
-  //cout << "DEBUG: json:" << ly_tree->print_mem(LYD_JSON, LYP_WD_EXPLICIT) << endl;
+  ly_tree = parser.create_ly_tree(sr_tree);
+  cout << "DEBUG: json:"
+       << ly_tree->print_mem(LYD_JSON, LYP_WD_EXPLICIT)
+       << endl;
 
   return ""; //TODO
 }
