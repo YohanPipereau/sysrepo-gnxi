@@ -50,9 +50,6 @@ GNMIServer::BuildGetNotification(Notification *notification, const Path *prefix,
   /* Refresh configuration data from current session */
   sr_sess->refresh();
 
-  /* This is a mistery why appending this magic "//." string made it work */
-  fullpath += "//.";
-
   /* Create appropriate TypedValue message based on encoding */
   if (encoding == JSON) {
     gnmival->mutable_json_ietf_val(); //TODO return a string*

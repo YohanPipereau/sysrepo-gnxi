@@ -240,25 +240,26 @@ void Json::update(string data)
 /* Get sysrepo subtree data corresponding to XPATH */
 string Json::read(string xpath)
 {
-  S_Iter_Value iter;
-  S_Val val;
-  libyang::S_Data_Node node;
+  libyang::S_Data_Node ly_tree;
+  sysrepo::S_Tree sr_tree;
   XpathParser parser(ctx);
 
-  /* Get Iterator for all subelements from xpath */
-  iter = sr_sess->get_items_iter(xpath.c_str());
-  if (iter == nullptr) // nothing was found for this xpath
-    throw invalid_argument("xpath " + xpath + " not found");
-
-  /* Get value for each subelement and append it to Data Tree */
-  while ((val = sr_sess->get_item_next(iter)) != nullptr) {
-    cout << "DEBUG: " << val->to_string() << flush;
-
-    node = parser.to_lynode(val);
-    cout << "DEBUG: json:" << node->print_mem(LYD_JSON, LYP_WD_EXPLICIT) << endl;
-
-    //TODO
+  if (xpath.back() == '.' || xpath.back() == '*') {
+    /* XPATH identify multiple instances */
+    throw invalid_argument("get xpaths must not end with '.' or '*'");
+    // could be retrieved with get_subtrees(xpath.c_str())
   }
+
+  /* XPATH identify a single instance */
+  sr_tree = sr_sess->get_subtree(xpath.c_str());
+    if (sr_tree == nullptr)
+      throw invalid_argument("xpath not found");
+
+  cout << "DEBUG: \n" << sr_tree->to_string(10) << endl;
+
+
+  //ly_tree = parser.create_ly_tree(sr_tree);
+  //cout << "DEBUG: json:" << ly_tree->print_mem(LYD_JSON, LYP_WD_EXPLICIT) << endl;
 
   return ""; //TODO
 }
