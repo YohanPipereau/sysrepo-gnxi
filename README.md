@@ -8,12 +8,12 @@ Supported RPCs:
 
 * [x] Capabilities
 * [X] Set
-* [ ] Get
+* [X] Get
 * [ ] Subscribe
 
 Supported encoding:
 
-* [x] No encoding
+* [x] No encoding/gNMI native encoding
 * [X] JSON IETF encoding (implies JSON encoding)
 * [ ] ~~Protobuf encoding~~
 * [ ] ~~Binary encoding~~
@@ -31,6 +31,7 @@ Supported authentication/encryption methods:
 ```
 sysrepo-gnmi
 +-- protobuf (>=3.0) #because of gnmi
++-- jsoncpp #because of get JSON
 +-- grpc (cpp)
 +-- libyang (cpp >=1.0-r3) #because of feature_enable
 +-- sysrepo (cpp)
@@ -110,6 +111,7 @@ What is no encoding? When should I use it?
 ==========================================
 
 No encoding is using protobuf types (i.e. basic programming languages types).
+It needs you to query a leaf of YANG tree (where values are stored), it then encode this leaf xpath directly with a value.
 
 It should be used if:
 
