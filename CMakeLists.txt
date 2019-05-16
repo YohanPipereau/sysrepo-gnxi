@@ -14,9 +14,16 @@ include_directories(${LIBYANG_INCLUDE_DIRS})
 
 # dependencies - libyang
 find_package(PkgConfig) #official cmake module
+find_package(JSONCPP REQUIRED) #use FindJSONCPP.cmake
 #find_package(LibYANG REQUIRED)
 pkg_check_modules(LIBYANG REQUIRED libyang-cpp)
 pkg_check_modules(SYSREPO REQUIRED libSysrepo-cpp) #PkgConfig cmake module maccro
+
+if(LIBJSONCPP_FOUND)
+    message ("LIBJSONCPP found")
+else()
+    message (FATAL_ERROR "Cannot find LIBJSONCPP")
+endif()
 
 # DEPENDENCIES & COMPILATION OF GNMI PROTO
 ##########################################
@@ -43,7 +50,6 @@ set(GNMI_SRC src/main.cpp
              src/set.cpp
              src/subscribe.cpp
              src/encode/encode.cpp
-             src/encode/utils.cpp
              src/encode/json_ietf.cpp
 )
 
@@ -51,9 +57,11 @@ add_executable(gnmi_server ${GNMI_SRC})
 
 target_include_directories(gnmi_server PRIVATE ${PROTOBUF_INCLUDE_DIR}
                              ${CMAKE_CURRENT_BINARY_DIR}/proto
+                             ${LIBJSONCPP_INCLUDE_DIR}
                              ${SYSREPO_INCLUDE_DIRS})
 
 # link gnmi_server executable with grpc, jsoncpp, sysrepo libraries
 target_link_libraries(gnmi_server gnmi
+                      ${LIBJSONCPP_LIBRARY}
                       ${SYSREPO_LIBRARIES}
                       ${LIBYANG_LIBRARIES})

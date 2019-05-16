@@ -6,6 +6,8 @@
 #include <libyang/Libyang.hpp>
 #include <sysrepo-cpp/Session.hpp>
 
+#include <jsoncpp/json/json.h>
+
 using std::shared_ptr;
 
 /*
@@ -40,15 +42,16 @@ class Encode {
 };
 
 /* Class for JSON IETF encoding */
-class Json : public Encode {
+class JsonEncode : public Encode {
   public:
-    Json(shared_ptr<libyang::Context> lctx,shared_ptr<sysrepo::Session> sess)
+    JsonEncode(shared_ptr<libyang::Context> lctx,shared_ptr<sysrepo::Session> sess)
         : Encode(sess), ctx(lctx) {}
     void update(std::string data) override;
     std::string read(std::string xpath);
 
   private:
     libyang::S_Data_Node create_root_node(std::string xpath);
+    Json::Value json_tree(sysrepo::S_Tree tree);
 
   private:
     std::shared_ptr<libyang::Context> ctx;

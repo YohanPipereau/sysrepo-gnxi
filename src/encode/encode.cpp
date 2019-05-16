@@ -217,7 +217,7 @@ unique_ptr<Encode> EncodeFactory::getEncoding(EncodeFactory::Encoding encoding)
 {
   if (encoding == EncodeFactory::Encoding::JSON) {
     cout << "DEBUG: Creating JSON object" << endl;
-    return unique_ptr<Encode>(new Json(ctx, sr_sess));
+    return unique_ptr<Encode>(new JsonEncode(ctx, sr_sess));
   } else {
     cerr << "ERROR: Unknown encoding" << endl;
     return nullptr;

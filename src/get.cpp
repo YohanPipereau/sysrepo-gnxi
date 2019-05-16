@@ -27,6 +27,7 @@ GNMIServer::BuildGetNotification(Notification *notification, const Path *prefix,
   Update *update;
   TypedValue *gnmival;
   string fullpath = "";
+  string *json_ietf;
 
   /* Get time since epoch in milliseconds */
   notification->set_timestamp(get_time_nanosec());
@@ -52,11 +53,10 @@ GNMIServer::BuildGetNotification(Notification *notification, const Path *prefix,
 
   /* Create appropriate TypedValue message based on encoding */
   if (encoding == JSON) {
-    gnmival->mutable_json_ietf_val(); //TODO return a string*
+    json_ietf = gnmival->mutable_json_ietf_val();
     /* Get sysrepo subtree data corresponding to XPATH */
     try {
-      string tmp = encodef->getEncoding(EncodeFactory::Encoding::JSON)->read(fullpath);
-      cout << tmp << endl;
+      *json_ietf = encodef->getEncoding(EncodeFactory::Encoding::JSON)->read(fullpath);
     } catch (invalid_argument &exc) {
       return Status(StatusCode::NOT_FOUND, exc.what());
     } catch (sysrepo_exception &exc) {

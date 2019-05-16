@@ -8,7 +8,6 @@
 #include <libyang/Tree_Data.hpp>
 
 #include "encode.h"
-#include "utils.h"
 
 using namespace std;
 using namespace libyang;
@@ -221,7 +220,7 @@ void Encode::storeTree(libyang::S_Data_Node node)
  * Parse a message encoded in JSON IETF and set fields in sysrepo.
  * @param data Input data encoded in JSON
  */
-void Json::update(string data)
+void JsonEncode::update(string data)
 {
   S_Data_Node node;
 
@@ -237,12 +236,106 @@ void Json::update(string data)
  * CRUD - READ *
  ***************/
 
-/* Get sysrepo subtree data corresponding to XPATH */
-string Json::read(string xpath)
+Json::Value
+JsonEncode::json_tree(sysrepo::S_Tree tree)
 {
-  libyang::S_Data_Node ly_tree;
+  sysrepo::S_Tree iter;
+  Json::Value val;
+
+  // run through all siblings
+  for (iter = tree->first_child(); iter != nullptr; iter = iter->next()) {
+    //create sibling with "node" as a parent
+    switch (iter->type()) { //follows RFC 7951
+      /* JSON Number */
+      case SR_UINT8_T:
+        val[iter->name()] = iter->data()->get_uint8();
+        break;
+      case SR_UINT16_T:
+        val[iter->name()] = iter->data()->get_uint16();
+        break;
+      case SR_UINT32_T:
+        val[iter->name()] = iter->data()->get_uint32();
+        break;
+      case SR_INT8_T:
+        val[iter->name()] = iter->data()->get_int8();
+        break;
+      case SR_INT16_T:
+        val[iter->name()] = iter->data()->get_int16();
+        break;
+      case SR_INT32_T:
+        val[iter->name()] = iter->data()->get_int32();
+        break;
+
+      /* JSON string */
+      case SR_STRING_T:
+        val[iter->name()] = iter->data()->get_string();
+        break;
+      case SR_INT64_T:
+        val[iter->name()] = to_string(iter->data()->get_int64());
+        break;
+      case SR_UINT64_T:
+        val[iter->name()] = to_string(iter->data()->get_uint64());
+        break;
+      case SR_DECIMAL64_T:
+        val[iter->name()] = to_string(iter->data()->get_decimal64());
+        break;
+      case SR_IDENTITYREF_T:
+        val[iter->name()] = iter->data()->get_identityref();
+        break;
+      case SR_INSTANCEID_T:
+        val[iter->name()] = iter->data()->get_identityref();
+        break;
+      case SR_BINARY_T:
+        val[iter->name()] = iter->data()->get_binary();
+        break;
+      case SR_BITS_T:
+        val[iter->name()] = iter->data()->get_bits();
+        break;
+      case SR_ENUM_T:
+        val[iter->name()] = iter->data()->get_enum();
+        break;
+      case SR_BOOL_T:
+        val[iter->name()] = iter->data()->get_bool() ? "true" : "false";
+        break;
+
+      /* JSON arrays */
+      case SR_LIST_T:
+        cout << "DEBUG: " << __FUNCTION__ << " LIST" << endl;
+        val[iter->name()].append(json_tree(iter));
+        break;
+      case SR_LEAF_EMPTY_T:
+        val[iter->name()].append("null");
+        break;
+
+      /* nested JSON */
+      case SR_CONTAINER_T:
+      case SR_CONTAINER_PRESENCE_T:
+        cout << "DEBUG: " << __FUNCTION__ << " CONTAINER" << endl;
+        val[iter->name()] = json_tree(iter);
+        break;
+
+      /* Unsupported types */
+      case SR_ANYDATA_T:
+      case SR_ANYXML_T:
+        throw invalid_argument("unsupported ANYDATA and ANYXML types");
+        break;
+
+      default:
+        cerr << "ERROR: Unknown" << endl;
+        throw invalid_argument("Unknown tree node type");
+      }
+  }
+  return val;
+}
+
+/* Get sysrepo subtree data corresponding to XPATH */
+string JsonEncode::read(string xpath)
+{
   sysrepo::S_Tree sr_tree;
-  XpathParser parser(ctx);
+  Json::StyledWriter styledwriter; //pretty JSON
+  Json::FastWriter fastWriter; //unreadable JSON
+  std::string prettyJson;
+  Json::Value val;
 
   if (xpath.back() == '.' || xpath.back() == '*') {
     /* XPATH identify multiple instances */
@@ -255,13 +348,14 @@ string Json::read(string xpath)
     if (sr_tree == nullptr)
       throw invalid_argument("xpath not found");
 
-  cout << "DEBUG: \n" << sr_tree->to_string(10) << endl;
+  // Print in sysrepo tree format
+  //cout << "DEBUG: \n" << sr_tree->to_string(10) << endl;
 
+  val = json_tree(sr_tree);
 
-  ly_tree = parser.create_ly_tree(sr_tree);
-  cout << "DEBUG: json:"
-       << ly_tree->print_mem(LYD_JSON, LYP_WD_EXPLICIT)
-       << endl;
+  /* Print Pretty JSON message */
+  prettyJson = styledwriter.write(val);
+  cout << prettyJson << endl;
 
-  return ""; //TODO
+  return fastWriter.write(val); /* return Fast unreadable JSON message */
 }
