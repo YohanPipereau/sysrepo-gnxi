@@ -98,8 +98,7 @@ Status GNMIServer::Set(ServerContext *context, const SetRequest* request,
 
   if (request->extension_size() > 0) {
     cerr << "Extensions not implemented" << endl;
-    return Status(StatusCode::UNIMPLEMENTED,
-                  grpc::string("Extensions not implemented"));
+    return Status(StatusCode::UNIMPLEMENTED, "Extensions not implemented");
   }
 
   response->set_timestamp(get_time_nanosec());
@@ -123,7 +122,7 @@ Status GNMIServer::Set(ServerContext *context, const SetRequest* request,
         cerr << "ERROR: " << __FILE__
              << " l. " << __LINE__
              << " " << exc.what() << endl;
-        return Status(StatusCode::INTERNAL, grpc::string("delete item failed"));
+        return Status(StatusCode::INTERNAL, "delete item failed");
       }
       //Fill in Reponse
       UpdateResult* res = response->add_response();
@@ -142,17 +141,17 @@ Status GNMIServer::Set(ServerContext *context, const SetRequest* request,
         cerr << "ERROR: " << __FILE__
              << " l." << __LINE__
              << " " << exc.what() << endl;
-        return Status(StatusCode::INVALID_ARGUMENT, grpc::string(exc.what()));
+        return Status(StatusCode::INVALID_ARGUMENT, exc.what());
       } catch (const sysrepo_exception &exc) {
         cerr << "ERROR: " << __FILE__
              << " l." << __LINE__
              << " " << exc.what() << endl;
-        return Status(StatusCode::INTERNAL, grpc::string(exc.what()));
+        return Status(StatusCode::INTERNAL, exc.what());
       } catch (const exception &exc) { //Any other exception
         cerr << "ERROR: " << __FILE__
              << " l." << __LINE__
              << " " << exc.what() << endl;
-        return Status(StatusCode::INTERNAL, grpc::string(exc.what()));
+        return Status(StatusCode::INTERNAL, exc.what());
       }
       res->set_op(gnmi::UpdateResult::REPLACE);
     }
@@ -168,12 +167,12 @@ Status GNMIServer::Set(ServerContext *context, const SetRequest* request,
         cerr << "ERROR: " << __FILE__
              << " l." << __LINE__
              << " " << exc.what() << endl;
-        return Status(StatusCode::INVALID_ARGUMENT, grpc::string(exc.what()));
+        return Status(StatusCode::INVALID_ARGUMENT, exc.what());
       } catch (const sysrepo_exception &exc) {
         cerr << "ERROR: " << __FILE__
              << " l." << __LINE__
              << " " << exc.what() << endl;
-        return Status(StatusCode::INTERNAL, grpc::string(exc.what()));
+        return Status(StatusCode::INTERNAL, exc.what());
       }
       res->set_op(gnmi::UpdateResult::UPDATE);
     }
@@ -185,7 +184,7 @@ Status GNMIServer::Set(ServerContext *context, const SetRequest* request,
     cerr << "ERROR: " << __FILE__
          << " l." << __LINE__
          << " " << exc.what() << endl;
-    return Status(StatusCode::INTERNAL, grpc::string("commit failed"));
+    return Status(StatusCode::INTERNAL, "commit failed");
   }
 
   return Status::OK;

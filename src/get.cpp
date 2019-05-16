@@ -97,14 +97,12 @@ static inline Status verifyGetRequest(const GetRequest *request)
 
   if (request->use_models_size() > 0) {
     cerr << "WARN: Use models feature unsupported, ALL are used" << endl;
-    return Status(StatusCode::UNIMPLEMENTED,
-                  grpc::string("use_model feature unsupported"));
+    return Status(StatusCode::UNIMPLEMENTED, "use_model feature unsupported");
   }
 
   if (request->extension_size() > 0) {
     cerr << "WARN: extension unsupported" << endl;
-    return Status(StatusCode::UNIMPLEMENTED,
-                  grpc::string("extension feature unsupported"));
+    return Status(StatusCode::UNIMPLEMENTED, "extension feature unsupported");
   }
 
   return Status::OK;

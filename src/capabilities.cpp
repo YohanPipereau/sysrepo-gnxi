@@ -2,7 +2,6 @@
 
 #include "server.h"
 
-using namespace grpc;
 using namespace gnmi;
 using namespace std;
 using sysrepo::Yang_Schemas;
@@ -19,8 +18,7 @@ Status GNMIServer::Capabilities(ServerContext *context,
 
   if (request->extension_size() > 0) {
     cerr << "Extensions not implemented" << endl;
-    return Status(StatusCode::UNIMPLEMENTED,
-                  grpc::string("Extensions not implemented"));
+    return Status(StatusCode::UNIMPLEMENTED, "Extensions not implemented");
   }
 
   try {
@@ -45,7 +43,7 @@ Status GNMIServer::Capabilities(ServerContext *context,
 
   } catch (const exception &exc) {
     cerr << "ERROR" << exc.what() << endl;
-    return Status(StatusCode::INTERNAL, grpc::string("Fail getting schemas"));
+    return Status(StatusCode::INTERNAL, "Fail getting schemas");
   }
 
   return Status::OK;
