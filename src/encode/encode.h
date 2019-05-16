@@ -17,7 +17,7 @@ using std::shared_ptr;
  * in sysrepo.
  *
  * -update()  CREATE & UPDATE
- * -read()    READ //TODO
+ * -read()    READ
  * -delete()  DELETE //TODO
  *
  */

@@ -9,6 +9,7 @@
 #include <grpc/grpc.h>
 
 #include "server.h"
+#include "utils/utils.h"
 
 using namespace std;
 using namespace chrono;

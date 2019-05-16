@@ -9,7 +9,7 @@
 #include <grpcpp/server.h>
 #include <grpcpp/server_builder.h>
 
-#include "security.h"
+#include "security/security.h"
 #include "server.h"
 
 using namespace std;

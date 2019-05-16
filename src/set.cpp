@@ -2,6 +2,7 @@
 
 #include "server.h"
 #include "encode/encode.h"
+#include "utils/utils.h"
 
 using namespace sysrepo;
 

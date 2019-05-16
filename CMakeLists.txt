@@ -43,12 +43,12 @@ add_subdirectory(proto)
 set(CMAKE_EXPORT_COMPILE_COMMANDS 1)
 
 set(GNMI_SRC src/main.cpp
-             src/security.cpp
-             src/server.cpp
              src/capabilities.cpp
              src/get.cpp
              src/set.cpp
              src/subscribe.cpp
+             src/security/security.cpp
+             src/encode/encode.cpp
              src/encode/encode.cpp
              src/encode/json_ietf.cpp
 )

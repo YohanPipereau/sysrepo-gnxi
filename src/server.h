@@ -19,7 +19,6 @@ using namespace std;
 using sysrepo::Session;
 using sysrepo::Connection;
 
-
 class GNMIServer final : public gNMI::Service
 {
   public:
@@ -47,12 +46,6 @@ class GNMIServer final : public gNMI::Service
     Status Subscribe(ServerContext* context,
         ServerReaderWriter<SubscribeResponse, SubscribeRequest>* stream);
 
-  private: /* Common Utils */
-    /* Conversion methods between xpaths and gNMI paths */
-    string gnmi_to_xpath(const Path& path);
-    /* Get current time since epoch in nanosec */
-    uint64_t get_time_nanosec();
-
   private: /* Set helpers */
     StatusCode handleUpdate(Update in, UpdateResult *out, string prefix);
 
@@ -63,7 +56,7 @@ class GNMIServer final : public gNMI::Service
   private: /* Subscribe helper */
     void BuildNotification(const SubscriptionList& request,
                            SubscribeResponse& response);
-    Status handleStream( ServerContext* context, SubscribeRequest request,
+    Status handleStream(ServerContext* context, SubscribeRequest request,
               ServerReaderWriter<SubscribeResponse, SubscribeRequest>* stream);
     Status handleOnce(ServerContext* context, SubscribeRequest request,
               ServerReaderWriter<SubscribeResponse, SubscribeRequest>* stream);
