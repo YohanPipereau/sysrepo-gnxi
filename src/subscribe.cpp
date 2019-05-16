@@ -16,12 +16,15 @@ using namespace chrono;
 using google::protobuf::RepeatedPtrField;
 
 /**
- * BuildNotification - build a Notification message to answer a SubscribeRequest.
+ * BuildSubscribeNotification - Build a Notification message.
+ * Contrary to Get Notification, gnmi specification highly recommands to
+ * put multiple <xpath, value> in the same Notification message.
  * @param request the SubscriptionList from SubscribeRequest to answer to.
  * @param response the SubscribeResponse that is constructed by this function.
  */
-void GNMIServer::BuildNotification(const SubscriptionList& request,
-                                   SubscribeResponse& response)
+void
+GNMIServer::BuildSubscribeNotification(const SubscriptionList& request,
+                                       SubscribeResponse& response)
 {
   Notification *notification = response.mutable_update();
   RepeatedPtrField<Update>* updateList = notification->mutable_update();
@@ -66,20 +69,22 @@ Status GNMIServer::handleStream(
     ServerContext* context, SubscribeRequest request,
     ServerReaderWriter<SubscribeResponse, SubscribeRequest>* stream)
 {
-  // Checks that sample_interval values are not higher than
-  // std::chrono::duration<long long, std::nano>::max().count() = 9223372036854775807
-  for (int i=0; i<request.subscribe().subscription_size(); i++) {
+  SubscribeResponse response;
+
+  // Checks that sample_interval values are not higher than INT64_MAX
+  // i.e. 9223372036854775807 nanoseconds
+  for (int i = 0; i < request.subscribe().subscription_size(); i++) {
     Subscription sub = request.subscribe().subscription(i);
     if (sub.sample_interval() > duration<long long, std::nano>::max().count()) {
       context->TryCancel();
       return Status(StatusCode::INVALID_ARGUMENT,
-                    "sample_interval must be less than 9223372036854775807 nanoseconds");
+                    string("sample_interval must be less than ")
+                    + to_string(INT64_MAX) + " nanoseconds");
     }
   }
 
   // Sends a first Notification message that updates all Subcriptions
-  SubscribeResponse response;
-  BuildNotification(request.subscribe(), response);
+  BuildSubscribeNotification(request.subscribe(), response);
   stream->Write(response);
   response.Clear();
 
@@ -127,7 +132,7 @@ Status GNMIServer::handleStream(
     }
 
     if (updateList->subscription_size() > 0) {
-      BuildNotification(updateRequest.subscribe(), response);
+      BuildSubscribeNotification(updateRequest.subscribe(), response);
       stream->Write(response);
       response.Clear();
     }
@@ -149,7 +154,7 @@ Status GNMIServer::handleOnce(ServerContext* context, SubscribeRequest request,
 {
   // Sends a Notification message that updates all Subcriptions once
   SubscribeResponse response;
-  BuildNotification(request.subscribe(), response);
+  BuildSubscribeNotification(request.subscribe(), response);
   stream->Write(response);
   response.Clear();
 
@@ -178,7 +183,7 @@ Status GNMIServer::handlePoll(ServerContext* context, SubscribeRequest request,
         {
           // Sends a Notification message that updates all Subcriptions once
           SubscribeResponse response;
-          BuildNotification(subscription.subscribe(), response);
+          BuildSubscribeNotification(subscription.subscribe(), response);
           stream->Write(response);
           response.Clear();
           break;

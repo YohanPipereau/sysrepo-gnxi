@@ -54,8 +54,8 @@ class GNMIServer final : public gNMI::Service
                                       Path &path, gnmi::Encoding encoding);
 
   private: /* Subscribe helper */
-    void BuildNotification(const SubscriptionList& request,
-                           SubscribeResponse& response);
+    void BuildSubscribeNotification(const SubscriptionList& request,
+                                    SubscribeResponse& response);
     Status handleStream(ServerContext* context, SubscribeRequest request,
               ServerReaderWriter<SubscribeResponse, SubscribeRequest>* stream);
     Status handleOnce(ServerContext* context, SubscribeRequest request,
