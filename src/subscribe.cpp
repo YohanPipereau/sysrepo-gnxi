@@ -72,8 +72,8 @@ Status GNMIServer::handleStream(
     Subscription sub = request.subscribe().subscription(i);
     if (sub.sample_interval() > duration<long long, std::nano>::max().count()) {
       context->TryCancel();
-      return Status(StatusCode::INVALID_ARGUMENT, grpc::string(
-        "sample_interval must be less than 9223372036854775807 nanoseconds"));
+      return Status(StatusCode::INVALID_ARGUMENT,
+                    "sample_interval must be less than 9223372036854775807 nanoseconds");
     }
   }
 
@@ -165,12 +165,13 @@ Status GNMIServer::handleOnce(ServerContext* context, SubscribeRequest request,
 
 /**
  * Handles SubscribeRequest messages with POLL subscription mode by updating
- * all the Subscriptions each time a Poll request in received.
+ * all the Subscriptions each time a Poll request is received.
  */
 Status GNMIServer::handlePoll(ServerContext* context, SubscribeRequest request,
     ServerReaderWriter<SubscribeResponse, SubscribeRequest>* stream)
 {
   SubscribeRequest subscription = request;
+
   while (stream->Read(&request)) {
     switch (request.request_case()) {
       case request.kPoll:
@@ -183,16 +184,16 @@ Status GNMIServer::handlePoll(ServerContext* context, SubscribeRequest request,
           break;
         }
       case request.kAliases:
-        return Status(StatusCode::UNIMPLEMENTED, grpc::string(
-              "Aliases not implemented yet"));
+        return Status(StatusCode::UNIMPLEMENTED, "Aliases not implemented yet");
       case request.kSubscribe:
-        return Status(StatusCode::INVALID_ARGUMENT, grpc::string(
-              "A SubscriptionList has already been received for this RPC"));
+        return Status(StatusCode::INVALID_ARGUMENT,
+                      "A SubscriptionList has already been received for this RPC");
       default:
-        return Status(StatusCode::INVALID_ARGUMENT, grpc::string(
-              "Unknown content for SubscribeRequest message"));
+        return Status(StatusCode::INVALID_ARGUMENT,
+                      "Unknown content for SubscribeRequest message");
     }
   }
+
   return Status::OK;
 }
 
@@ -205,11 +206,18 @@ Status GNMIServer::Subscribe(ServerContext* context,
                  ServerReaderWriter<SubscribeResponse, SubscribeRequest>* stream)
 {
   SubscribeRequest request;
+
   stream->Read(&request);
+
+  if (request.extension_size() > 0) {
+    cerr << "Extensions not implemented" << endl;
+    return Status(StatusCode::UNIMPLEMENTED, "Extensions not implemented");
+  }
+
   if (!request.has_subscribe()) {
     context->TryCancel();
-    return Status(StatusCode::INVALID_ARGUMENT, grpc::string(
-          "SubscribeRequest needs non-empty SubscriptionList"));
+    return Status(StatusCode::INVALID_ARGUMENT,
+                  "SubscribeRequest needs non-empty SubscriptionList");
   }
 
   switch (request.subscribe().mode()) {
@@ -220,9 +228,9 @@ Status GNMIServer::Subscribe(ServerContext* context,
     case SubscriptionList_Mode_POLL:
       return handlePoll(context, request, stream);
     default:
-      return Status(StatusCode::UNKNOWN,
-          grpc::string("Unkown subscription mode"));
+      return Status(StatusCode::UNKNOWN, "Unkown subscription mode");
   }
+
   return Status::OK;
 }
 
