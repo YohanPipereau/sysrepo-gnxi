@@ -55,6 +55,23 @@ cmake ..
 make
 ```
 
+# Clients
+
+gnmi clients for Capabilities, Set, Get:
+========================================
+
+* Arista [gnmi](https://github.com/aristanetworks/goarista/tree/master/cmd/gnmi)
+* Openconfig [gnmi_cli](https://github.com/openconfig/gnmi)
+* Google [gnmi_capabilities](https://github.com/google/gnxi/tree/master/gnmi_capabilities), [gnmi_get](https://github.com/google/gnxi/tree/master/gnmi_get), [gnmi_set](https://github.com/google/gnxi/tree/master/gnmi_set)
+
+gnmi clients for Subscribe (telemetry):
+=======================================
+
+* InfluxData [Telegraf](https://github.com/influxdata/telegraf)
+* Cisco [pipeline-gnmi](https://github.com/cisco-ie/pipeline-gnmi)
+* Openconfig [gnmi_collector](https://github.com/openconfig/gnmi/tree/master/cmd/gnmi_collector)
+* Nokia [pygnmi](https://github.com/nokia/pygnmi)
+
 # Examples
 
 ## Capabilities RPC
