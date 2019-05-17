@@ -9,40 +9,12 @@ using namespace std;
 using google::protobuf::RepeatedPtrField;
 using sysrepo::sysrepo_exception;
 
-/*
- * Build Get Notifications
- * Contrary to Subscribe Notifications, A new notification message must be
- * created for every path of the GetRequest.
- * There can still be multiple paths in GetResponse if requested path
- * is a directory path.
- *
- * IMPORTANT : we have choosen to have a stateless implementation of
- * gNMI so deleted path in Notification message will always be empty.
- */
-Status
-GNMIServer::BuildGetNotification(Notification *notification, const Path *prefix,
-                                 Path &path, gnmi::Encoding encoding)
+Status GNMIServer::BuildUpdate(RepeatedPtrField<Update>* updateList, const Path &path,
+                               std::string fullpath, gnmi::Encoding encoding)
 {
-  /* Data elements that have changed values */
-  RepeatedPtrField<Update>* updateList = notification->mutable_update();
   Update *update;
   TypedValue *gnmival;
-  string fullpath = "";
   string *json_ietf;
-
-  /* Get time since epoch in milliseconds */
-  notification->set_timestamp(get_time_nanosec());
-
-  /* Put Request prefix as Response prefix */
-  if (prefix != nullptr) {
-    string str = gnmi_to_xpath(*prefix);
-    cerr << "DEBUG: prefix is" << str << endl;
-    notification->mutable_prefix()->CopyFrom(*prefix);
-    fullpath += str;
-  }
-
-  fullpath += gnmi_to_xpath(path);
-  cout << "DEBUG: GetRequest Path " << fullpath << endl;
 
   /* Create Update message */
   update = updateList->Add();
@@ -70,6 +42,42 @@ GNMIServer::BuildGetNotification(Notification *notification, const Path *prefix,
     return Status(StatusCode::UNIMPLEMENTED, Encoding_Name(encoding));
   }
 
+  return Status::OK;
+}
+
+/*
+ * Build Get Notifications - Build a Notification message.
+ * Contrary to Subscribe Notifications, A new notification message must be
+ * created for every path of the GetRequest.
+ * There can still be multiple paths in GetResponse if requested path
+ * is a directory path.
+ *
+ * IMPORTANT : we have choosen to have a stateless implementation of
+ * gNMI so deleted path in Notification message will always be empty.
+ */
+Status
+GNMIServer::BuildGetNotification(Notification *notification, const Path *prefix,
+                                 const Path &path, gnmi::Encoding encoding)
+{
+  /* Data elements that have changed values */
+  RepeatedPtrField<Update>* updateList = notification->mutable_update();
+  string fullpath = "";
+
+  /* Get time since epoch in milliseconds */
+  notification->set_timestamp(get_time_nanosec());
+
+  /* Put Request prefix as Response prefix */
+  if (prefix != nullptr) {
+    string str = gnmi_to_xpath(*prefix);
+    cerr << "DEBUG: prefix is" << str << endl;
+    notification->mutable_prefix()->CopyFrom(*prefix);
+    fullpath += str;
+  }
+
+  fullpath += gnmi_to_xpath(path);
+  cout << "DEBUG: GetRequest Path " << fullpath << endl;
+
+  BuildUpdate(updateList, path, fullpath, encoding);
 
   /* TODO Check DATA TYPE in {ALL,CONFIG,STATE,OPERATIONAL}
    * This is interesting for NMDA architecture

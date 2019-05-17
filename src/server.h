@@ -16,8 +16,10 @@
 using namespace grpc;
 using namespace gnmi;
 using namespace std;
+
 using sysrepo::Session;
 using sysrepo::Connection;
+using google::protobuf::RepeatedPtrField;
 
 class GNMIServer final : public gNMI::Service
 {
@@ -46,15 +48,19 @@ class GNMIServer final : public gNMI::Service
     Status Subscribe(ServerContext* context,
         ServerReaderWriter<SubscribeResponse, SubscribeRequest>* stream);
 
+  private: /* Everyone's helper */
+    Status BuildUpdate(RepeatedPtrField<Update>* updateList, const Path &path,
+                       std::string fullpath, gnmi::Encoding encoding);
+
   private: /* Set helpers */
     StatusCode handleUpdate(Update in, UpdateResult *out, string prefix);
 
   private: /* Get helpers */
-    grpc::Status BuildGetNotification(Notification *notification, const Path *prefix,
-                                      Path &path, gnmi::Encoding encoding);
+    Status BuildGetNotification(Notification *notification, const Path *prefix,
+                                const Path &path, gnmi::Encoding encoding);
 
   private: /* Subscribe helper */
-    void BuildSubscribeNotification(const SubscriptionList& request,
+    Status BuildSubscribeNotification(const SubscriptionList& request,
                                     SubscribeResponse& response);
     Status handleStream(ServerContext* context, SubscribeRequest request,
               ServerReaderWriter<SubscribeResponse, SubscribeRequest>* stream);
