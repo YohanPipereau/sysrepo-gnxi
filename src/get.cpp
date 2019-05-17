@@ -77,16 +77,12 @@ GNMIServer::BuildGetNotification(Notification *notification, const Path *prefix,
   fullpath += gnmi_to_xpath(path);
   cout << "DEBUG: GetRequest Path " << fullpath << endl;
 
-  BuildUpdate(updateList, path, fullpath, encoding);
 
   /* TODO Check DATA TYPE in {ALL,CONFIG,STATE,OPERATIONAL}
    * This is interesting for NMDA architecture
    * req->type() : GetRequest_DataType_ALL,CONFIG,STATE,OPERATIONAL
    */
-
-  cout << "DEBUG: End of Notification" << endl;
-
-  return Status::OK;
+  return BuildUpdate(updateList, path, fullpath, encoding);
 }
 
 /* Verify request fields are correct */

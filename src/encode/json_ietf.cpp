@@ -343,6 +343,7 @@ string JsonEncode::read(string xpath)
     // could be retrieved with get_subtrees(xpath.c_str())
   }
 
+  cout << xpath << endl;
   /* XPATH identify a single instance */
   sr_tree = sr_sess->get_subtree(xpath.c_str());
     if (sr_tree == nullptr)

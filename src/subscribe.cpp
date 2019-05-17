@@ -28,6 +28,7 @@ GNMIServer::BuildSubscribeNotification(const SubscriptionList& request,
 {
   Notification *notification = response.mutable_update();
   RepeatedPtrField<Update>* updateList = notification->mutable_update();
+  Status status;
 
   if (request.encoding() != JSON) {
     cerr << "WARN: Unsupported Encoding " << Encoding_Name(request.encoding())
@@ -49,7 +50,7 @@ GNMIServer::BuildSubscribeNotification(const SubscriptionList& request,
   notification->set_timestamp(get_time_nanosec());
 
   /* Notification message prefix based on SubscriptionList prefix */
-  if (request.has_prefix()) {
+  if (request.has_prefix() && request.prefix().elem_size() > 0) {
     cerr << "WARN : prefix can not be used in Subscribe: "
          << gnmi_to_xpath(request.prefix()) << endl;
     return Status(StatusCode::UNIMPLEMENTED, "Prefix not supported");
@@ -65,7 +66,10 @@ GNMIServer::BuildSubscribeNotification(const SubscriptionList& request,
     Subscription sub = request.subscription(i);
 
     // Fetch all found counters value for a requested path
-    BuildUpdate(updateList, sub.path(), gnmi_to_xpath(sub.path()), gnmi::JSON);
+    status = BuildUpdate(updateList, sub.path(), gnmi_to_xpath(sub.path()),
+                         gnmi::JSON);
+    if (!status.ok())
+      return status;
   }
 
   notification->set_atomic(false);
