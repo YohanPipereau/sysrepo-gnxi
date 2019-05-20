@@ -67,7 +67,7 @@ class EncodeFactory {
     ~EncodeFactory();
     /* Supported Encodings */
     enum Encoding {
-      JSON = 0,
+      JSON_IETF = 0,
     };
     std::unique_ptr<Encode> getEncoding(EncodeFactory::Encoding encoding);
 

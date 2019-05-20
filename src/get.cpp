@@ -25,21 +25,24 @@ Status GNMIServer::BuildUpdate(RepeatedPtrField<Update>* updateList, const Path 
   sr_sess->refresh();
 
   /* Create appropriate TypedValue message based on encoding */
-  if (encoding == JSON) {
-    json_ietf = gnmival->mutable_json_ietf_val();
-    /* Get sysrepo subtree data corresponding to XPATH */
-    try {
-      *json_ietf = encodef->getEncoding(EncodeFactory::Encoding::JSON)->read(fullpath);
-    } catch (invalid_argument &exc) {
-      return Status(StatusCode::NOT_FOUND, exc.what());
-    } catch (sysrepo_exception &exc) {
-      cerr << "ERROR: Fail getting items from sysrepo "
-           << "l." << __LINE__ << " " << exc.what()
-           << endl;
-      return Status(StatusCode::INVALID_ARGUMENT, exc.what());
-    }
-  } else {
-    return Status(StatusCode::UNIMPLEMENTED, Encoding_Name(encoding));
+  switch (encoding) {
+    case gnmi::JSON_IETF:
+      json_ietf = gnmival->mutable_json_ietf_val();
+      /* Get sysrepo subtree data corresponding to XPATH */
+      try {
+        *json_ietf = encodef->getEncoding(EncodeFactory::Encoding::JSON_IETF)->read(fullpath);
+      } catch (invalid_argument &exc) {
+        return Status(StatusCode::NOT_FOUND, exc.what());
+      } catch (sysrepo_exception &exc) {
+        cerr << "ERROR: Fail getting items from sysrepo "
+             << "l." << __LINE__ << " " << exc.what()
+             << endl;
+        return Status(StatusCode::INVALID_ARGUMENT, exc.what());
+      }
+      break;
+
+    default:
+      return Status(StatusCode::UNIMPLEMENTED, Encoding_Name(encoding));
   }
 
   return Status::OK;
@@ -88,7 +91,7 @@ GNMIServer::BuildGetNotification(Notification *notification, const Path *prefix,
 /* Verify request fields are correct */
 static inline Status verifyGetRequest(const GetRequest *request)
 {
-  if (request->encoding() != JSON) {
+  if (request->encoding() != JSON_IETF) {
     cerr << "WARN: Unsupported Encoding" << endl;
     return Status(StatusCode::UNIMPLEMENTED, Encoding_Name(request->encoding()));
   }

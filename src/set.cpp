@@ -60,7 +60,7 @@ StatusCode GNMIServer::handleUpdate(Update in, UpdateResult *out, string prefix)
       return StatusCode::UNIMPLEMENTED;
     case gnmi::TypedValue::ValueCase::kJsonIetfVal:
       try {
-        encodef->getEncoding(EncodeFactory::Encoding::JSON)->update(reqval.json_ietf_val());
+        encodef->getEncoding(EncodeFactory::Encoding::JSON_IETF)->update(reqval.json_ietf_val());
       } catch (runtime_error &err) {
         //wrong input field must reply an error to gnmi client
         throw std::invalid_argument(err.what());

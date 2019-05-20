@@ -30,10 +30,15 @@ GNMIServer::BuildSubscribeNotification(const SubscriptionList& request,
   RepeatedPtrField<Update>* updateList = notification->mutable_update();
   Status status;
 
-  if (request.encoding() != JSON) {
-    cerr << "WARN: Unsupported Encoding " << Encoding_Name(request.encoding())
-         << endl;
-    return Status(StatusCode::UNIMPLEMENTED, Encoding_Name(request.encoding()));
+  switch (request.encoding()) {
+    case gnmi::JSON_IETF:
+      cout << "JSON IETF" << endl;
+      break;
+
+    default:
+      cerr << "WARN: Unsupported Encoding " << Encoding_Name(request.encoding())
+           << endl;
+      return Status(StatusCode::UNIMPLEMENTED, Encoding_Name(request.encoding()));
   }
 
   // Defined refer to a long Path by a shorter one: alias
@@ -67,7 +72,7 @@ GNMIServer::BuildSubscribeNotification(const SubscriptionList& request,
 
     // Fetch all found counters value for a requested path
     status = BuildUpdate(updateList, sub.path(), gnmi_to_xpath(sub.path()),
-                         gnmi::JSON);
+                         request.encoding());
     if (!status.ok())
       return status;
   }
@@ -86,6 +91,7 @@ Status GNMIServer::handleStream(
     ServerReaderWriter<SubscribeResponse, SubscribeRequest>* stream)
 {
   SubscribeResponse response;
+  Status status;
 
   // Checks that sample_interval values are not higher than INT64_MAX
   // i.e. 9223372036854775807 nanoseconds
@@ -100,7 +106,11 @@ Status GNMIServer::handleStream(
   }
 
   // Sends a first Notification message that updates all Subcriptions
-  BuildSubscribeNotification(request.subscribe(), response);
+  status = BuildSubscribeNotification(request.subscribe(), response);
+  if (!status.ok()) {
+    context->TryCancel();
+    return status;
+  }
   stream->Write(response);
   response.Clear();
 
@@ -120,6 +130,7 @@ Status GNMIServer::handleStream(
         chronomap.emplace_back(sub, high_resolution_clock::now());
         break;
       default:
+          cerr << "WARN: Unsupported mode" << endl;
         // TODO: Handle ON_CHANGE and TARGET_DEFINED modes
         // Ref: 3.5.1.5.2
         break;
@@ -148,7 +159,11 @@ Status GNMIServer::handleStream(
     }
 
     if (updateList->subscription_size() > 0) {
-      BuildSubscribeNotification(updateRequest.subscribe(), response);
+      status = BuildSubscribeNotification(updateRequest.subscribe(), response);
+      if(!status.ok()) {
+        context->TryCancel();
+        return status;
+      }
       stream->Write(response);
       response.Clear();
     }
@@ -168,9 +183,16 @@ Status GNMIServer::handleStream(
 Status GNMIServer::handleOnce(ServerContext* context, SubscribeRequest request,
     ServerReaderWriter<SubscribeResponse, SubscribeRequest>* stream)
 {
+  Status status;
+
   // Sends a Notification message that updates all Subcriptions once
   SubscribeResponse response;
-  BuildSubscribeNotification(request.subscribe(), response);
+  status = BuildSubscribeNotification(request.subscribe(), response);
+  if (!status.ok()) {
+    context->TryCancel();
+    return status;
+  }
+
   stream->Write(response);
   response.Clear();
 
@@ -180,7 +202,6 @@ Status GNMIServer::handleOnce(ServerContext* context, SubscribeRequest request,
   stream->Write(response);
   response.Clear();
 
-  context->TryCancel();
   return Status::OK;
 }
 
@@ -192,6 +213,7 @@ Status GNMIServer::handlePoll(ServerContext* context, SubscribeRequest request,
     ServerReaderWriter<SubscribeResponse, SubscribeRequest>* stream)
 {
   SubscribeRequest subscription = request;
+  Status status;
 
   while (stream->Read(&request)) {
     switch (request.request_case()) {
@@ -199,7 +221,11 @@ Status GNMIServer::handlePoll(ServerContext* context, SubscribeRequest request,
         {
           // Sends a Notification message that updates all Subcriptions once
           SubscribeResponse response;
-          BuildSubscribeNotification(subscription.subscribe(), response);
+          status = BuildSubscribeNotification(subscription.subscribe(), response);
+          if (!status.ok()) {
+            context->TryCancel();
+            return status;
+          }
           stream->Write(response);
           response.Clear();
           break;

@@ -216,7 +216,7 @@ EncodeFactory::~EncodeFactory()
 unique_ptr<Encode> EncodeFactory::getEncoding(EncodeFactory::Encoding encoding)
 {
   switch (encoding) {
-    case EncodeFactory::Encoding::JSON:
+    case EncodeFactory::Encoding::JSON_IETF:
       return unique_ptr<Encode>(new JsonEncode(ctx, sr_sess));
 
     default:
