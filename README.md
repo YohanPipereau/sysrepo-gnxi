@@ -9,12 +9,13 @@ Supported RPCs:
 * [x] Capabilities
 * [X] Set
 * [X] Get
-* [ ] Subscribe
+* [X] Subscribe
 
 Supported encoding:
 
-* [x] No encoding/gNMI native encoding
-* [X] JSON IETF encoding (implies JSON encoding)
+* [x] No encoding/gNMI native encoding (use `PROTO`)
+* [X] JSON IETF encoding  (use `JSON_IETF`)
+* [ ] ~~JSON encoding~~
 * [ ] ~~Protobuf encoding~~
 * [ ] ~~Binary encoding~~
 * [ ] ~~ASCII encoding~~
@@ -55,6 +56,10 @@ cmake ..
 make
 ```
 
+# Server
+
+* Launch server without authentification nor encryption : `gnmi_server -f`
+
 # Clients
 
 gnmi clients for Capabilities, Set, Get:
@@ -83,6 +88,7 @@ gnmi clients for Subscribe (telemetry):
 ## Set RPC
 
 Create a JSON file named tmp.json :
+
 ```
 {
     "ietf-interfaces:interfaces": {
@@ -119,16 +125,59 @@ Typically, in a JSON encoded format containing a list, you don't know which fiel
 
 Ex: /ietf-interfaces:interfaces/interface contains multiple leaves. "name" is the key but JSON does not give this information.
 
+What is the problem with JSON and JSON_IETF encodings?
+======================================================
+
+Your gnmi client for a `get` or `subscribe` rpc must have yang models downloaded if it wants to recognize which is the key from a JSON list.
+
+Ex: Which field is the key for interface list ?
+
+```
+{
+   "interface" : [
+      {
+         "admin-status" : "down",
+         "name" : "GigabitEthernet0/8/0",
+         "oper-status" : "down",
+         "phys-address" : "08:00:27:60:b7:12",
+         "speed" : "1000000",
+         "type" : "iana-if-type:ethernetCsmacd"
+      },
+      {
+         "admin-status" : "down",
+         "name" : "local0",
+         "oper-status" : "down",
+         "phys-address" : "00:00:00:00:00:00",
+         "speed" : "0",
+         "type" : "iana-if-type:ethernetCsmacd"
+      }
+   ]
+}
+```
+
+
+What is the problem using different encoding to store xpath in a database?
+==========================================================================
+
+The problem is that all encodings do not agree on the type which must be used to store a value.
+For example:
+`/ietf-interfaces:interfaces/interface[name="eth0"]/statistics/octets` can be stored as a `uint64_t` with no encoding or as a `string` with JSON IETF encoding.
+
 Why Protobuf/Binary/ASCII encoding are not supported?
 =====================================================
 
-Protobuf, binary and ASCII encodings requires gNMI client and server to have a convention regarding the data exchanged. Though, RFC7951 describes JSON encoding for YANG models and JSON is self describing, so both clients and server nows how data should be encoded.
+Protobuf, binary and ASCII encodings requires gNMI client and server to have a convention regarding the data exchanged.
+On the contrary, JSON IETF [RFC7951] and JSON are self describing, so both clients and server nows how data is encoded (Key:Value).
 
 What is no encoding? When should I use it?
 ==========================================
 
-No encoding is using protobuf types (i.e. basic programming languages types).
-It needs you to query a leaf of YANG tree (where values are stored), it then encode this leaf xpath directly with a value.
+No encoding means your value can be encoded in one of the following type i.e. string, int64, uint64, bool, bytes, float, Decimal64.
+This types are all supported types for a YANG leaf node.
+
+If you are using "No Encoding", or "Native Encoding", you must know that it is not part of gNMI specification.
+I took some liberty and if you use `PROTO` field of gnmi encoding enumeration.
+Because it encode yang leaves, the xpath, you will receive are all xpath for YANG leaves.
 
 It should be used if:
 
