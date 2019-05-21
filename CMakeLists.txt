@@ -15,6 +15,7 @@ include_directories(${LIBYANG_INCLUDE_DIRS})
 # dependencies - libyang
 find_package(PkgConfig) #official cmake module
 find_package(JSONCPP REQUIRED) #use FindJSONCPP.cmake
+find_package(Boost REQUIRED log system)
 #find_package(LibYANG REQUIRED)
 pkg_check_modules(LIBYANG REQUIRED libyang-cpp)
 pkg_check_modules(SYSREPO REQUIRED libSysrepo-cpp) #PkgConfig cmake module maccro
@@ -35,6 +36,9 @@ set(CMAKE_CXX_FLAGS_RELEASE "-Wall -Wextra -std=c++11 -DNDEBUG -O2 ${RIGOROUS_C_
 set(CMAKE_CXX_FLAGS_DEBUG   "-Wall -Wextra -std=c++11 -g -O0 ${RIGOROUS_C_FLAGS}")
 
 add_subdirectory(proto)
+
+#Use Boost with Dynamic libraries rather than static linkage
+add_definitions(-D BOOST_LOG_DYN_LINK)
 
 # COMPILER & LINKER
 ###################
@@ -57,11 +61,16 @@ add_executable(gnmi_server ${GNMI_SRC})
 
 target_include_directories(gnmi_server PRIVATE ${PROTOBUF_INCLUDE_DIR}
                              ${CMAKE_CURRENT_BINARY_DIR}/proto
+                             ${Boost_INCLUDE_DIRS}
                              ${LIBJSONCPP_INCLUDE_DIR}
                              ${SYSREPO_INCLUDE_DIRS})
+
+link_directories(${Boost_LIBRARY_DIRS})
 
 # link gnmi_server executable with grpc, jsoncpp, sysrepo libraries
 target_link_libraries(gnmi_server gnmi
                       ${LIBJSONCPP_LIBRARY}
+                      ${Boost_LIBRARIES}
                       ${SYSREPO_LIBRARIES}
-                      ${LIBYANG_LIBRARIES})
+                      ${LIBYANG_LIBRARIES}
+                      )

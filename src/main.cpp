@@ -10,6 +10,7 @@
 #include <grpcpp/server_builder.h>
 
 #include "security/security.h"
+#include "utils/log.h"
 #include "server.h"
 
 using namespace std;
@@ -39,6 +40,7 @@ static void show_usage(std::string name)
     << "\t-f,--force-insecure\t\tNo TLS connection, no password authentication\n"
     << "\t-k,--private-key PRIVATE_KEY\tpath to server PEM private key\n"
     << "\t-c,--cert-chain CERT_CHAIN\tpath to server PEM certificate chain\n"
+    << "\t-l,--log-level LOG_LEVEL\tLog level\n"
     << std::endl;
 }
 
@@ -52,6 +54,7 @@ int main (int argc, char* argv[]) {
   static struct option long_options[] =
   {
     {"help", no_argument, 0, 'h'},
+    {"log-level", required_argument, 0, 'l'}, //log level
     {"username", required_argument, 0, 'u'},
     {"password", required_argument, 0, 'p'},
     {"private-key", required_argument, 0, 'k'}, //private key
@@ -61,11 +64,12 @@ int main (int argc, char* argv[]) {
   };
 
   /*
+   * An option character followed by ('') indicates no argument
    * An option character followed by (‘:’) indicates a required argument.
    * An option character is followed by (‘::’) indicates an optional argument.
-   * Here: optional argument (h,f) ; mandatory arguments (p,u)
+   * Here: no argument (h,f) ; mandatory arguments (p,u,l)
    */
-  while ((c = getopt_long(argc, argv, "hfp:u:c:k:", long_options, &option_index))
+  while ((c = getopt_long(argc, argv, "hfl:p:u:c:k:", long_options, &option_index))
          != -1) {
     switch (c)
     {
@@ -109,6 +113,13 @@ int main (int argc, char* argv[]) {
           std::cerr << "Please specify a string with chain certs path\n"
             << "Ex: --cert-chain CERTS_PATH" << std::endl;
           exit(1);
+        }
+        break;
+      case 'l':
+        if (optarg) {
+          Log(atoi(optarg));
+        } else {
+          Log();
         }
         break;
       case 'f':
