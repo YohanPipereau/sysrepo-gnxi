@@ -55,6 +55,7 @@ set(GNMI_SRC src/main.cpp
              src/encode/encode.cpp
              src/encode/encode.cpp
              src/encode/json_ietf.cpp
+             src/utils/log.cpp
 )
 
 add_executable(gnmi_server ${GNMI_SRC})
