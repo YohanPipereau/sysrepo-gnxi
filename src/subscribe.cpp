@@ -31,6 +31,7 @@ GNMIServer::BuildSubscribeNotification(const SubscriptionList& request,
   Status status;
 
   switch (request.encoding()) {
+    case gnmi::JSON:
     case gnmi::JSON_IETF:
       BOOST_LOG_TRIVIAL(debug) << "JSON IETF";
       break;

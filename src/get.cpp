@@ -28,6 +28,7 @@ Status GNMIServer::BuildUpdate(RepeatedPtrField<Update>* updateList, const Path 
 
   /* Create appropriate TypedValue message based on encoding */
   switch (encoding) {
+    case gnmi::JSON:
     case gnmi::JSON_IETF:
       json_ietf = gnmival->mutable_json_ietf_val();
       /* Get sysrepo subtree data corresponding to XPATH */
@@ -92,10 +93,16 @@ GNMIServer::BuildGetNotification(Notification *notification, const Path *prefix,
 /* Verify request fields are correct */
 static inline Status verifyGetRequest(const GetRequest *request)
 {
-  if (request->encoding() != JSON_IETF) {
-    BOOST_LOG_TRIVIAL(warning) << "Unsupported Encoding "
-                               << Encoding_Name(request->encoding());
-    return Status(StatusCode::UNIMPLEMENTED, Encoding_Name(request->encoding()));
+  switch (request->encoding()) {
+    case gnmi::JSON:
+    case gnmi::JSON_IETF:
+      break;
+
+    default:
+      BOOST_LOG_TRIVIAL(warning) << "Unsupported Encoding "
+                                 << Encoding_Name(request->encoding());
+      return Status(StatusCode::UNIMPLEMENTED,
+                    Encoding_Name(request->encoding()));
   }
 
   if (!GetRequest_DataType_IsValid(request->type())) {
