@@ -6,9 +6,9 @@
 #include <chrono>
 #include <string>
 
-using chrono::system_clock;
-using chrono::duration_cast;
-using chrono::nanoseconds;
+using std::chrono::system_clock;
+using std::chrono::duration_cast;
+using std::chrono::nanoseconds;
 
 /* Get current time since epoch in nanosec */
 inline uint64_t get_time_nanosec()

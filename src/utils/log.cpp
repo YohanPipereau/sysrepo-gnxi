@@ -32,6 +32,6 @@ Log::Log(int lvl)
   std::cout << "Launch with " << logging::trivial::to_string(l) << std::endl;
 
   logging::core::get()->set_filter(
-    logging::trivial::severity >= logging::trivial::info
+    logging::trivial::severity >= l
   );
 }

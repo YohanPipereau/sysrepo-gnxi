@@ -15,11 +15,11 @@
 
 using namespace grpc;
 using namespace gnmi;
-using namespace std;
 
 using sysrepo::Session;
 using sysrepo::Connection;
 using google::protobuf::RepeatedPtrField;
+using std::make_shared;
 
 class GNMIServer final : public gNMI::Service
 {
@@ -30,11 +30,11 @@ class GNMIServer final : public gNMI::Service
         sr_sess = make_shared<Session>(sr_con);
         encodef = make_shared<EncodeFactory>(sr_sess);
       } catch (sysrepo::sysrepo_exception &exc) {
-        cerr << "Connection to sysrepo failed. " << exc.what() << endl;
+        std::cerr << "Connection to sysrepo failed " << exc.what() << std::endl;
         exit(1);
       }
     }
-    ~GNMIServer() {cout << "Quitting GNMI Server" << endl; }
+    ~GNMIServer() {std::cout << "Quitting GNMI Server" << std::endl; }
 
     Status Capabilities(ServerContext* context,
         const CapabilityRequest* request, CapabilityResponse* response);

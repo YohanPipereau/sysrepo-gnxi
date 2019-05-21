@@ -6,6 +6,7 @@
 #include <utils/log.h>
 
 using namespace sysrepo;
+using namespace std;
 
 StatusCode GNMIServer::handleUpdate(Update in, UpdateResult *out, string prefix)
 {
