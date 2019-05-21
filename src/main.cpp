@@ -41,6 +41,11 @@ static void show_usage(string name)
     << "\t-k,--private-key PRIVATE_KEY\tpath to server PEM private key\n"
     << "\t-c,--cert-chain CERT_CHAIN\tpath to server PEM certificate chain\n"
     << "\t-l,--log-level LOG_LEVEL\tLog level\n"
+    << "\t\t 0 = all logging turned off\n"
+    << "\t\t 1 = log only error messages\n"
+    << "\t\t 2 = (default) log error and warning messages\n"
+    << "\t\t 3 = log error, warning and informational messages\n"
+    << "\t\t 4 = log everything, including development debug messages\n"
     << endl;
 }
 
