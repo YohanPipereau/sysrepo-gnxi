@@ -17,22 +17,22 @@ using namespace std;
 
 void RunServer(ServerSecurityContext *cxt)
 {
-  std::string server_address("0.0.0.0:50051");
+  string server_address("0.0.0.0:50051");
   GNMIServer service("sysepo-gnmi");
   ServerBuilder builder;
 
   builder.AddListeningPort(server_address, cxt->GetCredentials());
   builder.RegisterService(&service);
-  std::unique_ptr<Server> server(builder.BuildAndStart());
-  std::cout << "Using grpc " << grpc::Version() << std::endl;
-  std::cout << "Server listening on " << server_address << std::endl;
+  unique_ptr<Server> server(builder.BuildAndStart());
+  cout << "Using grpc " << grpc::Version() << endl;
+  cout << "Server listening on " << server_address << endl;
 
   server->Wait();
 }
 
-static void show_usage(std::string name)
+static void show_usage(string name)
 {
-  std::cerr << "Usage: " << name << " <option(s)>\n"
+  cerr << "Usage: " << name << " <option(s)>\n"
     << "Options:\n"
     << "\t-h,--help\t\t\tShow this help message\n"
     << "\t-u,--username USERNAME\t\tDefine connection username\n"
@@ -41,14 +41,14 @@ static void show_usage(std::string name)
     << "\t-k,--private-key PRIVATE_KEY\tpath to server PEM private key\n"
     << "\t-c,--cert-chain CERT_CHAIN\tpath to server PEM certificate chain\n"
     << "\t-l,--log-level LOG_LEVEL\tLog level\n"
-    << std::endl;
+    << endl;
 }
 
 int main (int argc, char* argv[]) {
   int c;
   extern char *optarg;
   int option_index = 0;
-  std::string username, password;
+  string username, password;
   ServerSecurityContext *cxt = new ServerSecurityContext();
 
   static struct option long_options[] =
@@ -82,8 +82,8 @@ int main (int argc, char* argv[]) {
           cxt->SetAuthType(USERPASS);
           cxt->SetUsername(string(optarg));
         } else {
-          std::cerr << "Please specify a string with username option\n"
-            << "Ex: -u USERNAME" << std::endl;
+          cerr << "Please specify a string with username option\n"
+            << "Ex: -u USERNAME" << endl;
           exit(1);
         }
         break;
@@ -92,8 +92,8 @@ int main (int argc, char* argv[]) {
           cxt->SetAuthType(USERPASS);
           cxt->SetPassword(string(optarg));
         } else {
-          std::cerr << "Please specify a string with password option\n"
-            << "Ex: -p PASSWORD" << std::endl;
+          cerr << "Please specify a string with password option\n"
+            << "Ex: -p PASSWORD" << endl;
           exit(1);
         }
         break;
@@ -101,8 +101,8 @@ int main (int argc, char* argv[]) {
         if (optarg) {
           cxt->SetKeyPath(string(optarg));
         } else {
-          std::cerr << "Please specify a string with private key path\n"
-            << "Ex: --private-key KEY_PATH" << std::endl;
+          cerr << "Please specify a string with private key path\n"
+            << "Ex: --private-key KEY_PATH" << endl;
           exit(1);
         }
         break;
@@ -110,8 +110,8 @@ int main (int argc, char* argv[]) {
         if (optarg) {
           cxt->SetCertsPath(string(optarg));
         } else {
-          std::cerr << "Please specify a string with chain certs path\n"
-            << "Ex: --cert-chain CERTS_PATH" << std::endl;
+          cerr << "Please specify a string with chain certs path\n"
+            << "Ex: --cert-chain CERTS_PATH" << endl;
           exit(1);
         }
         break;
@@ -135,15 +135,15 @@ int main (int argc, char* argv[]) {
 
   if (cxt->GetEncryptType() == EncryptType::SSL) {
     if (cxt->GetKeyPath().empty() || cxt->GetCertsPath().empty()) {
-      std::cerr << "Both private key and certificate required" << std::endl;
+      cerr << "Both private key and certificate required" << endl;
       exit(1);
     }
-    std::cout << "Initiate a TLS connection" << std::endl;
+    cout << "Initiate a TLS connection" << endl;
   }
 
   if (cxt->GetAuthType() == AuthType::USERPASS) {
     if (cxt->GetUsername().empty() || cxt->GetPassword().empty()) {
-      std::cerr << "Both username and password required" << std::endl;
+      cerr << "Both username and password required" << endl;
       exit(1);
     }
   }
