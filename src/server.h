@@ -9,7 +9,7 @@
 #include <sysrepo-cpp/Connection.hpp>
 #include <sysrepo-cpp/Session.hpp>
 
-#include "encode/encode.h"
+#include <encode/encode.h>
 
 #define UNUSED(x) (void)x
 
@@ -30,11 +30,11 @@ class GNMIServer final : public gNMI::Service
         sr_sess = make_shared<Session>(sr_con);
         encodef = make_shared<EncodeFactory>(sr_sess);
       } catch (sysrepo::sysrepo_exception &exc) {
-        cerr << "Error: Connection to sysrepo failed. " << exc.what() << endl;
+        cerr << "Connection to sysrepo failed. " << exc.what() << endl;
         exit(1);
       }
     }
-    ~GNMIServer() {std::cout << "Quitting GNMI Server" << std::endl; }
+    ~GNMIServer() {cout << "Quitting GNMI Server" << endl; }
 
     Status Capabilities(ServerContext* context,
         const CapabilityRequest* request, CapabilityResponse* response);
@@ -50,7 +50,7 @@ class GNMIServer final : public gNMI::Service
 
   private: /* Everyone's helper */
     Status BuildUpdate(RepeatedPtrField<Update>* updateList, const Path &path,
-                       std::string fullpath, gnmi::Encoding encoding);
+                       string fullpath, gnmi::Encoding encoding);
 
   private: /* Set helpers */
     StatusCode handleUpdate(Update in, UpdateResult *out, string prefix);
@@ -72,7 +72,7 @@ class GNMIServer final : public gNMI::Service
   private:
     sysrepo::S_Connection sr_con; //sysrepo connection
     sysrepo::S_Session sr_sess; //sysrepo session
-    std::shared_ptr<EncodeFactory> encodef; //support for json ietf encoding
+    shared_ptr<EncodeFactory> encodef; //support for json ietf encoding
 };
 
 #endif //_GNMI_SERVER_H

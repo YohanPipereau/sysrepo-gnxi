@@ -1,7 +1,7 @@
 /*  vim:set softtabstop=2 shiftwidth=2 tabstop=2 expandtab: */
 
 #include "server.h"
-#include "utils/log.h"
+#include <utils/log.h>
 
 using namespace gnmi;
 using namespace std;

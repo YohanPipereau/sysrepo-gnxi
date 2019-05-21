@@ -9,9 +9,9 @@
 #include <grpcpp/server.h>
 #include <grpcpp/server_builder.h>
 
-#include "security/security.h"
-#include "utils/log.h"
 #include "server.h"
+#include <security/security.h>
+#include <utils/log.h>
 
 using namespace std;
 

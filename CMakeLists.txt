@@ -59,6 +59,8 @@ set(GNMI_SRC src/main.cpp
 
 add_executable(gnmi_server ${GNMI_SRC})
 
+include_directories(${CMAKE_CURRENT_SOURCE_DIR}/src)
+
 target_include_directories(gnmi_server PRIVATE ${PROTOBUF_INCLUDE_DIR}
                              ${CMAKE_CURRENT_BINARY_DIR}/proto
                              ${Boost_INCLUDE_DIRS}

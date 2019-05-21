@@ -3,8 +3,8 @@
 #include <grpc/grpc.h>
 
 #include "server.h"
-#include "utils/utils.h"
-#include "utils/log.h"
+#include <utils/utils.h>
+#include <utils/log.h>
 
 
 using namespace std;
