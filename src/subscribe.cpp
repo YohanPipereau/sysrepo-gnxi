@@ -10,6 +10,7 @@
 
 #include "server.h"
 #include "utils/utils.h"
+#include "utils/log.h"
 
 using namespace std;
 using namespace chrono;
@@ -32,32 +33,32 @@ GNMIServer::BuildSubscribeNotification(const SubscriptionList& request,
 
   switch (request.encoding()) {
     case gnmi::JSON_IETF:
-      cout << "JSON IETF" << endl;
+      BOOST_LOG_TRIVIAL(debug) << "JSON IETF";
       break;
 
     default:
-      cerr << "WARN: Unsupported Encoding " << Encoding_Name(request.encoding())
-           << endl;
+      BOOST_LOG_TRIVIAL(warning) << "Unsupported Encoding "
+                                 << Encoding_Name(request.encoding());
       return Status(StatusCode::UNIMPLEMENTED, Encoding_Name(request.encoding()));
   }
 
   // Defined refer to a long Path by a shorter one: alias
   if (request.use_aliases()) {
-    cerr << "WARN : Unsupported usage of aliases" << endl;
+    BOOST_LOG_TRIVIAL(warning) << "Unsupported usage of aliases";
     return Status(StatusCode::UNIMPLEMENTED, "alias not supported");
   }
 
   /* Check if only updates should be sent */
   if (request.updates_only())
-    cerr << "WARN : Unsupported usage of Updates, send all paths"  << endl;
+    BOOST_LOG_TRIVIAL(warning) << "Unsupported updates_only, send all paths";
 
   /* Get time since epoch in milliseconds */
   notification->set_timestamp(get_time_nanosec());
 
   /* Notification message prefix based on SubscriptionList prefix */
   if (request.has_prefix() && request.prefix().elem_size() > 0) {
-    cerr << "WARN : prefix can not be used in Subscribe: "
-         << gnmi_to_xpath(request.prefix()) << endl;
+    BOOST_LOG_TRIVIAL(warning) << "prefix can not be used in Subscribe: "
+                               << gnmi_to_xpath(request.prefix());
     return Status(StatusCode::UNIMPLEMENTED, "Prefix not supported");
   }
 
@@ -130,7 +131,7 @@ Status GNMIServer::handleStream(
         chronomap.emplace_back(sub, high_resolution_clock::now());
         break;
       default:
-          cerr << "WARN: Unsupported mode" << endl;
+        BOOST_LOG_TRIVIAL(warning) << "Unsupported mode";
         // TODO: Handle ON_CHANGE and TARGET_DEFINED modes
         // Ref: 3.5.1.5.2
         break;
@@ -257,7 +258,7 @@ Status GNMIServer::Subscribe(ServerContext* context,
   stream->Read(&request);
 
   if (request.extension_size() > 0) {
-    cerr << "Extensions not implemented" << endl;
+    BOOST_LOG_TRIVIAL(error) << "Extensions not implemented";
     return Status(StatusCode::UNIMPLEMENTED, "Extensions not implemented");
   }
 
@@ -275,7 +276,8 @@ Status GNMIServer::Subscribe(ServerContext* context,
     case SubscriptionList_Mode_POLL:
       return handlePoll(context, request, stream);
     default:
-      return Status(StatusCode::UNKNOWN, "Unkown subscription mode");
+      BOOST_LOG_TRIVIAL(error) << "Unknown subscription mode";
+      return Status(StatusCode::UNKNOWN, "Unknown subscription mode");
   }
 
   return Status::OK;
