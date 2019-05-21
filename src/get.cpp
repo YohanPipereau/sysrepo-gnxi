@@ -4,6 +4,8 @@
 
 #include "server.h"
 #include "utils/utils.h"
+#include "utils/log.h"
+
 
 using namespace std;
 using google::protobuf::RepeatedPtrField;
@@ -34,9 +36,8 @@ Status GNMIServer::BuildUpdate(RepeatedPtrField<Update>* updateList, const Path 
       } catch (invalid_argument &exc) {
         return Status(StatusCode::NOT_FOUND, exc.what());
       } catch (sysrepo_exception &exc) {
-        cerr << "ERROR: Fail getting items from sysrepo "
-             << "l." << __LINE__ << " " << exc.what()
-             << endl;
+        BOOST_LOG_TRIVIAL(error) << "Fail getting items from sysrepo "
+                                 << exc.what();
         return Status(StatusCode::INVALID_ARGUMENT, exc.what());
       }
       break;
@@ -72,13 +73,13 @@ GNMIServer::BuildGetNotification(Notification *notification, const Path *prefix,
   /* Put Request prefix as Response prefix */
   if (prefix != nullptr) {
     string str = gnmi_to_xpath(*prefix);
-    cerr << "DEBUG: prefix is" << str << endl;
+    BOOST_LOG_TRIVIAL(debug) << "prefix is " << str;
     notification->mutable_prefix()->CopyFrom(*prefix);
     fullpath += str;
   }
 
   fullpath += gnmi_to_xpath(path);
-  cout << "DEBUG: GetRequest Path " << fullpath << endl;
+  BOOST_LOG_TRIVIAL(debug) << "GetRequest Path " << fullpath;
 
 
   /* TODO Check DATA TYPE in {ALL,CONFIG,STATE,OPERATIONAL}
@@ -92,23 +93,25 @@ GNMIServer::BuildGetNotification(Notification *notification, const Path *prefix,
 static inline Status verifyGetRequest(const GetRequest *request)
 {
   if (request->encoding() != JSON_IETF) {
-    cerr << "WARN: Unsupported Encoding" << endl;
+    BOOST_LOG_TRIVIAL(warning) << "Unsupported Encoding "
+                               << Encoding_Name(request->encoding());
     return Status(StatusCode::UNIMPLEMENTED, Encoding_Name(request->encoding()));
   }
 
   if (!GetRequest_DataType_IsValid(request->type())) {
-    cerr << "WARN: invalid Data Type in Get Request" << endl;
+    BOOST_LOG_TRIVIAL(warning) << "Invalid Data Type in Get Request "
+                               << GetRequest_DataType_Name(request->type());
     return Status(StatusCode::UNIMPLEMENTED,
                   GetRequest_DataType_Name(request->type()));
   }
 
   if (request->use_models_size() > 0) {
-    cerr << "WARN: Use models feature unsupported, ALL are used" << endl;
+    BOOST_LOG_TRIVIAL(warning) << "use_models unsupported, ALL are used";
     return Status(StatusCode::UNIMPLEMENTED, "use_model feature unsupported");
   }
 
   if (request->extension_size() > 0) {
-    cerr << "WARN: extension unsupported" << endl;
+    BOOST_LOG_TRIVIAL(warning) << "extension unsupported";
     return Status(StatusCode::UNIMPLEMENTED, "extension feature unsupported");
   }
 
@@ -128,11 +131,10 @@ Status GNMIServer::Get(ServerContext *context, const GetRequest* req,
   if (!status.ok())
     return status;
 
-  cout << "DEBUG: GetRequest DataType " << GetRequest::DataType_Name(req->type())
-      << endl;
-
-  cout << "DEBUG: GetRequest Encoding " << Encoding_Name(req->encoding())
-       << endl;
+  BOOST_LOG_TRIVIAL(debug) << "GetRequest DataType "
+                           << GetRequest::DataType_Name(req->type());
+  BOOST_LOG_TRIVIAL(debug) << "GetRequest Encoding "
+                           << Encoding_Name(req->encoding());
 
   /* Run through all paths */
   notificationList = response->mutable_notification();
@@ -145,10 +147,8 @@ Status GNMIServer::Get(ServerContext *context, const GetRequest* req,
       status = BuildGetNotification(notification, nullptr, path, req->encoding());
 
     if (!status.ok()) {
-      cerr << "ERROR:"
-           << " Errcode=" << status.error_code()
-           << " Errmessage=" << status.error_message()
-           << endl;
+      BOOST_LOG_TRIVIAL(error) << "Fail building get notification "
+                               << status.error_message();
       return status;
     }
   }
