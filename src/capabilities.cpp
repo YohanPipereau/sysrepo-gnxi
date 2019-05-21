@@ -1,6 +1,7 @@
 /*  vim:set softtabstop=2 shiftwidth=2 tabstop=2 expandtab: */
 
 #include "server.h"
+#include "utils/log.h"
 
 using namespace gnmi;
 using namespace std;
@@ -17,7 +18,7 @@ Status GNMIServer::Capabilities(ServerContext *context,
   FileOptions fopts;
 
   if (request->extension_size() > 0) {
-    cerr << "Extensions not implemented" << endl;
+    BOOST_LOG_TRIVIAL(error) << "Extensions not implemented";
     return Status(StatusCode::UNIMPLEMENTED, "Extensions not implemented");
   }
 
@@ -39,10 +40,10 @@ Status GNMIServer::Capabilities(ServerContext *context,
     //response->add_supported_encodings(gnmi::Encoding::BYTES);
     //response->add_supported_encodings(gnmi::Encoding::PROTO);
     //response->add_supported_encodings(gnmi::Encoding::ASCII);
-    //response->add_supported_encodings(gnmi::Encoding::JSON_IETF);
+    response->add_supported_encodings(gnmi::Encoding::JSON_IETF);
 
   } catch (const exception &exc) {
-    cerr << "ERROR" << exc.what() << endl;
+    BOOST_LOG_TRIVIAL(error) << exc.what();
     return Status(StatusCode::INTERNAL, "Fail getting schemas");
   }
 
