@@ -15,17 +15,21 @@
 
 using namespace std;
 
-void RunServer(ServerSecurityContext *cxt)
+void RunServer(ServerSecurityContext *cxt, string bind_addr)
 {
-  string server_address("0.0.0.0:50051");
   GNMIServer service("sysepo-gnmi");
   ServerBuilder builder;
 
-  builder.AddListeningPort(server_address, cxt->GetCredentials());
+  builder.AddListeningPort(bind_addr, cxt->GetCredentials());
   builder.RegisterService(&service);
   unique_ptr<Server> server(builder.BuildAndStart());
   cout << "Using grpc " << grpc::Version() << endl;
-  cout << "Server listening on " << server_address << endl;
+
+  if (bind_addr.find(":") == string::npos) {
+    cout << "Server listening on " << bind_addr << ":443" << endl;
+  } else {
+    cout << "Server listening on " << bind_addr << endl;
+  }
 
   server->Wait();
 }
@@ -46,6 +50,10 @@ static void show_usage(string name)
     << "\t\t 2 = (default) log error and warning messages\n"
     << "\t\t 3 = log error, warning and informational messages\n"
     << "\t\t 4 = log everything, including development debug messages\n"
+    << "\t-b,--bind URI\tBind to an URI\n"
+    << "\t\t URI = PREFIX://IP:PORT\n"
+    << "\t\t URI = IP:PORT, default to dns:// prefix\n"
+    << "\t\t URI = IP, default to dns:// prefix and port 443\n"
     << endl;
 }
 
@@ -53,6 +61,7 @@ int main (int argc, char* argv[]) {
   int c;
   extern char *optarg;
   int option_index = 0;
+  string bind_addr = "localhost:50051";
   string username, password;
   ServerSecurityContext *cxt = new ServerSecurityContext();
 
@@ -65,6 +74,7 @@ int main (int argc, char* argv[]) {
     {"private-key", required_argument, 0, 'k'}, //private key
     {"cert-chain", required_argument, 0, 'c'}, //certificate chain
     {"force-insecure", no_argument, 0, 'f'}, //insecure mode
+    {"bind", required_argument, 0, 'b'}, //insecure mode
     {0, 0, 0, 0}
   };
 
@@ -72,9 +82,9 @@ int main (int argc, char* argv[]) {
    * An option character followed by ('') indicates no argument
    * An option character followed by (‘:’) indicates a required argument.
    * An option character is followed by (‘::’) indicates an optional argument.
-   * Here: no argument (h,f) ; mandatory arguments (p,u,l)
+   * Here: no argument after (h,f) ; mandatory argument after (p,u,l,b)
    */
-  while ((c = getopt_long(argc, argv, "hfl:p:u:c:k:", long_options, &option_index))
+  while ((c = getopt_long(argc, argv, "hfl:p:u:c:k:b:", long_options, &option_index))
          != -1) {
     switch (c)
     {
@@ -127,6 +137,14 @@ int main (int argc, char* argv[]) {
           Log();
         }
         break;
+      case 'b':
+        if (optarg) {
+          bind_addr = optarg;
+        } else {
+          cerr << "Please specify a string with binding address" << endl;
+          exit(1);
+        }
+        break;
       case 'f':
         cxt->SetEncryptType(INSECURE);
         break;
@@ -153,7 +171,7 @@ int main (int argc, char* argv[]) {
     }
   }
 
-  RunServer(cxt);
+  RunServer(cxt, bind_addr);
 
   return 0;
 }
