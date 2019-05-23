@@ -38,13 +38,6 @@ enum EncryptType {
  * - Authentication informations: Based on Metadata Processor or Interceptor
  */
 class ServerSecurityContext {
-  private:
-    enum EncryptType encType;
-    std::string private_key_path, chain_certs_path; //SSL
-
-    enum AuthType authType;
-    UserPassProcessor *proc;
-
   public:
     ServerSecurityContext() : encType(SSL), authType(NOAUTH)
       {proc = new UserPassProcessor();};
@@ -70,4 +63,11 @@ class ServerSecurityContext {
     enum AuthType GetAuthType() {return authType;};
 
     friend class UserPassProcessor;
+
+  private:
+    enum EncryptType encType;
+    std::string private_key_path, chain_certs_path; //SSL
+
+    enum AuthType authType;
+    UserPassProcessor *proc;
 };
