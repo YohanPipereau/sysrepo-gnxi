@@ -4,7 +4,7 @@
 
 #include "log.h"
 
-Log::Log(int lvl)
+static void _boost_set_log_level(int lvl)
 {
   logging::trivial::severity_level l;
 
@@ -29,9 +29,18 @@ Log::Log(int lvl)
       exit(1);
   }
 
-  std::cout << "Launch with " << logging::trivial::to_string(l) << std::endl;
-
   logging::core::get()->set_filter(
     logging::trivial::severity >= l
   );
+}
+
+
+Log::Log(int lvl)
+{
+  _boost_set_log_level(lvl);
+}
+
+void Log::setLevel(int lvl)
+{
+  _boost_set_log_level(lvl);
 }

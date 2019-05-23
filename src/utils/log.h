@@ -22,6 +22,8 @@ class Log {
   public:
     Log(int lvl = 2);
     ~Log() {}
+
+    static void setLevel(int lvl);
 };
 
 #endif // _LOG_H

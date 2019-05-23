@@ -50,7 +50,7 @@ static void show_usage(string name)
     << "\t\t 2 = (default) log error and warning messages\n"
     << "\t\t 3 = log error, warning and informational messages\n"
     << "\t\t 4 = log everything, including development debug messages\n"
-    << "\t-b,--bind URI\tBind to an URI\n"
+    << "\t-b,--bind URI\t\t\tBind to an URI\n"
     << "\t\t URI = PREFIX://IP:PORT\n"
     << "\t\t URI = IP:PORT, default to dns:// prefix\n"
     << "\t\t URI = IP, default to dns:// prefix and port 443\n"
@@ -63,6 +63,7 @@ int main (int argc, char* argv[]) {
   int option_index = 0;
   string bind_addr = "localhost:50051";
   string username, password;
+  Log();
   ServerSecurityContext *cxt = new ServerSecurityContext();
 
   static struct option long_options[] =
@@ -132,9 +133,9 @@ int main (int argc, char* argv[]) {
         break;
       case 'l':
         if (optarg) {
-          Log(atoi(optarg));
+          Log::setLevel(atoi(optarg));
         } else {
-          Log();
+          cerr << "Please specify a log level" << endl;
         }
         break;
       case 'b':

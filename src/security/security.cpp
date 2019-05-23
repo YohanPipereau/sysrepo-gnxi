@@ -2,25 +2,30 @@
 
 #include <fstream>
 
+#include <utils/log.h>
+
 #include "security.h"
 
 using std::string;
 using std::shared_ptr;
+using std::istreambuf_iterator;
+using grpc::Status;
+using grpc::StatusCode;
 
 /* GetFileContent - Get an entier File content
  * @param Path to the file
  * @return String containing the entire File.
  */
-std::string GetFileContent(std::string path)
+string GetFileContent(string path)
 {
   std::ifstream ifs(path);
   if (!ifs) {
-    std::cerr << "File" << path << " not found" << std::endl;
+    BOOST_LOG_TRIVIAL(fatal) << "File" << path << " not found";
     exit(1);
   }
 
-  std::string content((std::istreambuf_iterator<char>(ifs)),
-      (std::istreambuf_iterator<char>()));
+  string content((istreambuf_iterator<char>(ifs)),
+                 (istreambuf_iterator<char>()));
 
   ifs.close();
 
@@ -59,7 +64,7 @@ std::shared_ptr<ServerCredentials> ServerSecurityContext::GetCredentials()
   } else if (encType == INSECURE) {
     servCred = grpc::InsecureServerCredentials();
   } else {
-    std::cerr << "Unknown Encryption Type" << std::endl;
+    BOOST_LOG_TRIVIAL(fatal) << "Unknown Encryption Type";
     exit(1);
   }
 
@@ -69,11 +74,11 @@ std::shared_ptr<ServerCredentials> ServerSecurityContext::GetCredentials()
       servCred->SetAuthMetadataProcessor(shared_ptr<UserPassProcessor>(proc));
       return servCred;
   } else if (authType == USERPASS && encType == INSECURE) {
-    std::cerr << "Impossible to use user/pass auth with insecure connection"
-      << std::endl;
+    BOOST_LOG_TRIVIAL(fatal) << "Impossible to use user/pass auth with"
+                             << " insecure connection";
     exit(1);
   } else {
-    std::cerr << "Unknown Authentication Type" << std::endl;
+    BOOST_LOG_TRIVIAL(fatal) << "Unknown Authentication Type";
     exit(1);
   }
 }
@@ -84,27 +89,25 @@ Status UserPassProcessor::Process(const InputMetadata& auth_metadata,
                                       OutputMetadata* consumed_auth_metadata,
                                       OutputMetadata* response_metadata)
 {
-  (void)context; (void)response_metadata;
+  (void)context; (void)response_metadata; //Unused
+
   /* Look for username/password fields in Metadata sent by client */
   auto user_kv = auth_metadata.find("username");
   if (user_kv == auth_metadata.end()) {
-    std::cerr << "No username field" << std::endl;
-    return grpc::Status(grpc::StatusCode::UNAUTHENTICATED,
-                        "No username field");
+    BOOST_LOG_TRIVIAL(error) << "No username field";
+    return Status(StatusCode::UNAUTHENTICATED, "No username field");
   }
   auto pass_kv = auth_metadata.find("password");
   if (pass_kv == auth_metadata.end()) {
-    std::cerr << "No password field" << std::endl;
-    return grpc::Status(grpc::StatusCode::UNAUTHENTICATED,
-                        "No password field");
+    BOOST_LOG_TRIVIAL(error) << "No password field";
+    return Status(StatusCode::UNAUTHENTICATED, "No password field");
   }
 
   /* test if username and password are good */
   if (password != pass_kv->second.data() ||
       username != user_kv->second.data()) {
-    std::cerr << "Invalid username/password" << std::endl;
-    return grpc::Status(grpc::StatusCode::UNAUTHENTICATED,
-                        "Invalid username/password");
+    BOOST_LOG_TRIVIAL(error) << "Invalid username/password";
+    return Status(StatusCode::UNAUTHENTICATED, "Invalid username/password");
   }
 
   /* Remove username and password key-value from metadata */
@@ -115,5 +118,5 @@ Status UserPassProcessor::Process(const InputMetadata& auth_metadata,
         string(pass_kv->first.data(), pass_kv->first.length()),
         string(pass_kv->second.data(), pass_kv->second.length())));
 
-  return grpc::Status::OK;
+  return Status::OK;
 }
