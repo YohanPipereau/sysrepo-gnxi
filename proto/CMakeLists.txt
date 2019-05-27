@@ -29,9 +29,6 @@ PROTOBUF_GENERATE_GRPC_CPP(gnmi_ext_grpc_srcs gnmi_ext_grpc_hdrs ${gnmi_ext_prot
 # LINK OPTIONS FOR GNMI-SERVER
 ##############################
 
-# Include generated protobuf C++ files
-include_directories("${CMAKE_CURRENT_BINARY_DIR}")
-
 #Create a new library named gnmi
 add_library(gnmi ${gnmi_grpc_srcs} ${gnmi_ext_grpc_srcs} ${gnmi_proto_srcs} ${gnmi_ext_proto_srcs})
 

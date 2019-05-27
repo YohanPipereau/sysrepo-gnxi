@@ -3,7 +3,7 @@
 #ifndef _GNMI_SERVER_H
 #define _GNMI_SERVER_H
 
-#include "../proto/gnmi.grpc.pb.h"
+#include <proto/gnmi.grpc.pb.h>
 
 #include <sysrepo-cpp/Sysrepo.hpp>
 #include <sysrepo-cpp/Connection.hpp>
