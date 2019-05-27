@@ -22,10 +22,11 @@ Supported encoding:
 
 Supported authentication/encryption methods:
 
-* [x] TLS/SSL with username/password
-* [x] TLS/SSL without username/password
-* [x] username/password, no encryption
-* [x] no username/password, no encryption
+* [x] no encryption, no username/password (DEBUGGING ONLY)
+* [ ] ~~no encryption, username/password~~
+* [ ] ~~TLS/SSL encryption only~~ : server key pair only
+* [x] TLS/SSL encryption + Username/password authentication: server key pair only
+* [x] TLS/SSL encryption & authentication: server and client key pairs (RECOMMENDED)
 
 # Dependencies
 
@@ -56,9 +57,66 @@ cmake ..
 make
 ```
 
-# Server
+# Generate PKI (Recommanded)
 
-* Launch server without authentification nor encryption : `gnmi_server -f`
+On CA machine:
+
+```
+#Generate a self-signed certificate for CA if you don’t have one
+openssl  req -x509 -days  365 -nodes  -newkey  rsa:2048 -keyout  ca.key -out ca.crt
+```
+
+On gNMI server:
+
+```
+#Generate a private key & certificate request for server
+#CN (Common Name) or FQDN is mandatory and must be server domain name
+openssl  req -new -days  365 -nodes  -newkey  rsa:2048 -keyout  server.key -out  server.certreq.csr
+cat server.certreq.csr | grep "CERTIFICATE REQUEST" #check it is a cert request
+```
+
+On CA machine:
+
+```
+#CA sign server certificate request:
+openssl  x509 -req -days  360 -in server.certreq.csr -CA ca.crt -CAkey ca.key -CAcreateserial -out server.crt -sha256
+```
+
+On client machine:
+
+```
+#Generate client key, certificate request, make CA sign it
+#FQDN is optional because server can not initiate TLS connection for now (Dialout)
+openssl  req -new -days  365 -nodes  -newkey  rsa:2048 -keyout  client.key -out  client.certreq.csr
+```
+
+On CA machine:
+
+```
+#CA sign client certificate request:
+openssl x509 -req -days 360 -in client.certreq.csr -CA ca.crt -CAkey ca.key -CAcreateserial -out client.crt -sha256
+```
+
+# Get started
+
+* Server/client in INSECURE mode (no username/password) and no TLS connection
+```
+gnmi_server -f
+gnmi -addr localhost:50051 get /ietf-interfaces:interfaces-state
+```
+
+* Server/client with TLS connection for encryption and authentication:
+```
+gnmi_server -k server.key -c server.crt -l4
+./gnmi -addr localhost:50051 -certfile=client.crt -keyfile=client.key get /ietf-interfaces:interfaces-state
+```
+
+* Server/client with username/password + TLS connection for encryption only:
+```
+gnmi_server -k server.key -c server.crt --username cisco --password cisco -l4
+gnmi -addr localhost:50051 -cafile ca.crt -username cisco -password cisco get /ietf-interfaces:interfaces-state
+```
+
 
 # Clients
 
