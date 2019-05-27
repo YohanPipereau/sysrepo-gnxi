@@ -104,8 +104,8 @@ Status UserPassProcessor::Process(const InputMetadata& auth_metadata,
   }
 
   /* test if username and password are good */
-  if (password != pass_kv->second.data() ||
-      username != user_kv->second.data()) {
+  if ( password.compare(pass_kv->second.data()) != 0 ||
+       username.compare(user_kv->second.data()) != 0 ) {
     BOOST_LOG_TRIVIAL(error) << "Invalid username/password";
     return Status(StatusCode::UNAUTHENTICATED, "Invalid username/password");
   }

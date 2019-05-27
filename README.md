@@ -108,7 +108,7 @@ gnmi -addr localhost:50051 get /ietf-interfaces:interfaces-state
 * Server/client with TLS connection for encryption and authentication:
 ```
 gnmi_server -k server.key -c server.crt -l4
-./gnmi -addr localhost:50051 -certfile=client.crt -keyfile=client.key get /ietf-interfaces:interfaces-state
+gnmi -addr localhost:50051 -certfile=client.crt -keyfile=client.key get /ietf-interfaces:interfaces-state
 ```
 
 * Server/client with username/password + TLS connection for encryption only:
@@ -140,7 +140,7 @@ gnmi clients for Subscribe (telemetry):
 ## Capabilities RPC
 
 ```
-./gnmi -addr localhost:50051 capabilities
+gnmi -addr localhost:50051 capabilities
 ```
 
 ## Set RPC
@@ -162,14 +162,14 @@ Create a JSON file named tmp.json :
 ```
 
 ```
-./gnmi -addr localhost:50051 update / tmp.json
+gnmi -addr localhost:50051 update / tmp.json
 ```
 
 ## Get RPC:
 
 ```
-./gnmi -addr localhost:50051 get /ietf-interfaces:interfaces/ 
-./gnmi -addr localhost:50051 get /ietf-interfaces:interfaces/ /openconfig-interfaces:interfaces
+gnmi -addr localhost:50051 get /ietf-interfaces:interfaces/ 
+gnmi -addr localhost:50051 get /ietf-interfaces:interfaces/ /openconfig-interfaces:interfaces
 ```
 
 ## Subscribe RPC:
