@@ -1,6 +1,6 @@
 /*  vim:set softtabstop=2 shiftwidth=2 tabstop=2 expandtab: */
 
-#include "server.h"
+#include "gnmi.h"
 #include <encode/encode.h>
 #include <utils/utils.h>
 #include <utils/log.h>

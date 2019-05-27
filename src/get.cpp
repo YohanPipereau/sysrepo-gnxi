@@ -2,7 +2,7 @@
 
 #include <grpc/grpc.h>
 
-#include "server.h"
+#include "gnmi.h"
 #include <utils/utils.h>
 #include <utils/log.h>
 
