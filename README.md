@@ -1,4 +1,4 @@
-# sysrepo-gnmi
+# sysrepo-gnxi
 
 # Description
 
@@ -31,7 +31,7 @@ Supported authentication/encryption methods:
 # Dependencies
 
 ```
-sysrepo-gnmi
+sysrepo-gnxi
 +-- protobuf (>=3.0) #because of gnmi
 +-- jsoncpp #because of get JSON
 +-- grpc (cpp)
@@ -41,7 +41,7 @@ sysrepo-gnmi
 |   +-- ...
 ```
 
-libyang is a dependency of _sysrepo-gnmi_ but it should be installed with sysrepo anyway. Though, make sure you have installed libyang with C++ library and header files.
+libyang is a dependency of _sysrepo-gnxi_ but it should be installed with sysrepo anyway. Though, make sure you have installed libyang with C++ library and header files.
 
 Check [here](https://github.com/sysrepo/sysrepo/blob/master/INSTALL.md) for installation instructions of sysrepo.
 
@@ -66,7 +66,7 @@ On CA machine:
 openssl  req -x509 -days  365 -nodes  -newkey  rsa:2048 -keyout  ca.key -out ca.crt
 ```
 
-On gNMI server:
+On gNXI server:
 
 ```
 #Generate a private key & certificate request for server
@@ -101,19 +101,19 @@ openssl x509 -req -days 360 -in client.certreq.csr -CA ca.crt -CAkey ca.key -CAc
 
 * Server/client in INSECURE mode (no username/password) and no TLS connection
 ```
-gnmi_server -f
+gnxi_server -f
 gnmi -addr localhost:50051 get /ietf-interfaces:interfaces-state
 ```
 
 * Server/client with TLS connection for encryption and authentication:
 ```
-gnmi_server -k server.key -c server.crt -l4
+gnxi_server -k server.key -c server.crt -l4
 gnmi -addr localhost:50051 -certfile=client.crt -keyfile=client.key get /ietf-interfaces:interfaces-state
 ```
 
 * Server/client with username/password + TLS connection for encryption only:
 ```
-gnmi_server -k server.key -c server.crt --username cisco --password cisco -l4
+gnxi_server -k server.key -c server.crt --username cisco --password cisco -l4
 gnmi -addr localhost:50051 -cafile ca.crt -username cisco -password cisco get /ietf-interfaces:interfaces-state
 ```
 

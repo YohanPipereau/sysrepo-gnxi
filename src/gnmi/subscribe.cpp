@@ -23,7 +23,7 @@ using google::protobuf::RepeatedPtrField;
  * @param response the SubscribeResponse that is constructed by this function.
  */
 Status
-GNMIServer::BuildSubscribeNotification(const SubscriptionList& request,
+GNMIService::BuildSubscribeNotification(const SubscriptionList& request,
                                        SubscribeResponse& response)
 {
   Notification *notification = response.mutable_update();
@@ -87,7 +87,7 @@ GNMIServer::BuildSubscribeNotification(const SubscriptionList& request,
  * Handles SubscribeRequest messages with STREAM subscription mode by
  * periodically sending updates to the client.
  */
-Status GNMIServer::handleStream(
+Status GNMIService::handleStream(
     ServerContext* context, SubscribeRequest request,
     ServerReaderWriter<SubscribeResponse, SubscribeRequest>* stream)
 {
@@ -181,7 +181,7 @@ Status GNMIServer::handleStream(
  * Handles SubscribeRequest messages with ONCE subscription mode by updating
  * all the Subscriptions once, sending a SYNC message, then closing the RPC.
  */
-Status GNMIServer::handleOnce(ServerContext* context, SubscribeRequest request,
+Status GNMIService::handleOnce(ServerContext* context, SubscribeRequest request,
     ServerReaderWriter<SubscribeResponse, SubscribeRequest>* stream)
 {
   Status status;
@@ -210,7 +210,7 @@ Status GNMIServer::handleOnce(ServerContext* context, SubscribeRequest request,
  * Handles SubscribeRequest messages with POLL subscription mode by updating
  * all the Subscriptions each time a Poll request is received.
  */
-Status GNMIServer::handlePoll(ServerContext* context, SubscribeRequest request,
+Status GNMIService::handlePoll(ServerContext* context, SubscribeRequest request,
     ServerReaderWriter<SubscribeResponse, SubscribeRequest>* stream)
 {
   SubscribeRequest subscription = request;
@@ -250,7 +250,7 @@ Status GNMIServer::handlePoll(ServerContext* context, SubscribeRequest request,
  * If it does not have the "subscribe" field set, the RPC MUST be cancelled.
  * Ref: 3.5.1.1
  */
-Status GNMIServer::Subscribe(ServerContext* context,
+Status GNMIService::Subscribe(ServerContext* context,
                  ServerReaderWriter<SubscribeResponse, SubscribeRequest>* stream)
 {
   SubscribeRequest request;

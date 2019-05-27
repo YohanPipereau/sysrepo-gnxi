@@ -9,7 +9,7 @@
 #include <sysrepo-cpp/Connection.hpp>
 #include <sysrepo-cpp/Session.hpp>
 
-#include <encode/encode.h>
+#include "encode/encode.h"
 
 #define UNUSED(x) (void)x
 
@@ -21,10 +21,10 @@ using sysrepo::Connection;
 using google::protobuf::RepeatedPtrField;
 using std::make_shared;
 
-class GNMIServer final : public gNMI::Service
+class GNMIService final : public gNMI::Service
 {
   public:
-    GNMIServer(string app) {
+    GNMIService(string app) {
       try {
         sr_con = make_shared<Connection>(app.c_str(), SR_CONN_DAEMON_REQUIRED);
         sr_sess = make_shared<Session>(sr_con);
@@ -34,7 +34,7 @@ class GNMIServer final : public gNMI::Service
         exit(1);
       }
     }
-    ~GNMIServer() {std::cout << "Quitting GNMI Server" << std::endl; }
+    ~GNMIService() {std::cout << "Quitting GNMI Server" << std::endl; }
 
     Status Capabilities(ServerContext* context,
         const CapabilityRequest* request, CapabilityResponse* response);

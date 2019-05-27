@@ -8,7 +8,7 @@ using namespace std;
 using sysrepo::Yang_Schemas;
 using google::protobuf::FileOptions;
 
-Status GNMIServer::Capabilities(ServerContext *context,
+Status GNMIService::Capabilities(ServerContext *context,
                                  const CapabilityRequest* request,
                                  CapabilityResponse* response)
 {

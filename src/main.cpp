@@ -9,7 +9,7 @@
 #include <grpcpp/server.h>
 #include <grpcpp/server_builder.h>
 
-#include "server.h"
+#include "gnmi/gnmi.h"
 #include <security/security.h>
 #include <utils/log.h>
 
@@ -17,11 +17,11 @@ using namespace std;
 
 void RunServer(ServerSecurityContext *cxt, string bind_addr)
 {
-  GNMIServer service("sysepo-gnmi");
   ServerBuilder builder;
+  GNMIService gnmi("gnmi"); //gNMI Service
 
   builder.AddListeningPort(bind_addr, cxt->GetCredentials());
-  builder.RegisterService(&service);
+  builder.RegisterService(&gnmi);
   unique_ptr<Server> server(builder.BuildAndStart());
   cout << "Using grpc " << grpc::Version() << endl;
 

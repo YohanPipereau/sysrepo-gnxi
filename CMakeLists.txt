@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 2.8)
-project(sysrepo-gnmi)
+project(sysrepo-gnxi)
 
-#C++11 is required by gNMI
+#C++11 is required by gNXI
 set(CMAKE_CXX_STANDARD 11)
 
 # DEPENDENCIES
@@ -26,7 +26,7 @@ else()
     message (FATAL_ERROR "Cannot find LIBJSONCPP")
 endif()
 
-# DEPENDENCIES & COMPILATION OF GNMI PROTO
+# DEPENDENCIES & COMPILATION OF GNXI PROTO
 ##########################################
 
 # set compiler and linker flags
@@ -46,23 +46,23 @@ add_definitions(-D BOOST_LOG_DYN_LINK)
 # Generate a compile_commands.json with compile options
 set(CMAKE_EXPORT_COMPILE_COMMANDS 1)
 
-set(GNMI_SRC src/main.cpp
-             src/capabilities.cpp
-             src/get.cpp
-             src/set.cpp
-             src/subscribe.cpp
+set(GNXI_SRC src/main.cpp
              src/security/security.cpp
-             src/encode/encode.cpp
-             src/encode/encode.cpp
-             src/encode/json_ietf.cpp
              src/utils/log.cpp
+             src/gnmi/capabilities.cpp
+             src/gnmi/get.cpp
+             src/gnmi/set.cpp
+             src/gnmi/subscribe.cpp
+             src/gnmi/encode/encode.cpp
+             src/gnmi/encode/encode.cpp
+             src/gnmi/encode/json_ietf.cpp
 )
 
-add_executable(gnmi_server ${GNMI_SRC})
+add_executable(gnxi_server ${GNXI_SRC})
 
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/src)
 
-target_include_directories(gnmi_server PRIVATE ${PROTOBUF_INCLUDE_DIR}
+target_include_directories(gnxi_server PRIVATE ${PROTOBUF_INCLUDE_DIR}
                              ${CMAKE_CURRENT_BINARY_DIR}/proto
                              ${Boost_INCLUDE_DIRS}
                              ${LIBJSONCPP_INCLUDE_DIR}
@@ -70,8 +70,8 @@ target_include_directories(gnmi_server PRIVATE ${PROTOBUF_INCLUDE_DIR}
 
 link_directories(${Boost_LIBRARY_DIRS})
 
-# link gnmi_server executable with grpc, jsoncpp, sysrepo libraries
-target_link_libraries(gnmi_server gnmi
+# link gnxi_server executable with grpc, jsoncpp, sysrepo libraries
+target_link_libraries(gnxi_server gnmi
                       ${LIBJSONCPP_LIBRARY}
                       ${Boost_LIBRARIES}
                       ${SYSREPO_LIBRARIES}

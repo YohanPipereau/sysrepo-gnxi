@@ -6,12 +6,11 @@
 #include <utils/utils.h>
 #include <utils/log.h>
 
-
 using namespace std;
 using google::protobuf::RepeatedPtrField;
 using sysrepo::sysrepo_exception;
 
-Status GNMIServer::BuildUpdate(RepeatedPtrField<Update>* updateList, const Path &path,
+Status GNMIService::BuildUpdate(RepeatedPtrField<Update>* updateList, const Path &path,
                                std::string fullpath, gnmi::Encoding encoding)
 {
   Update *update;
@@ -61,7 +60,7 @@ Status GNMIServer::BuildUpdate(RepeatedPtrField<Update>* updateList, const Path 
  * gNMI so deleted path in Notification message will always be empty.
  */
 Status
-GNMIServer::BuildGetNotification(Notification *notification, const Path *prefix,
+GNMIService::BuildGetNotification(Notification *notification, const Path *prefix,
                                  const Path &path, gnmi::Encoding encoding)
 {
   /* Data elements that have changed values */
@@ -126,7 +125,7 @@ static inline Status verifyGetRequest(const GetRequest *request)
 }
 
 /* Implement gNMI Get RPC */
-Status GNMIServer::Get(ServerContext *context, const GetRequest* req,
+Status GNMIService::Get(ServerContext *context, const GetRequest* req,
                         GetResponse* response)
 {
   UNUSED(context);
