@@ -6,12 +6,12 @@ BR="/tmp"
 # LIBYANG #
 ###########
 
-mkdir -p ${BR}/downloads/&&cd ${BR}/downloads/
+mkdir -p ${BR}/downloads/ && cd ${BR}/downloads/
 
 git clone https://github.com/CESNET/libyang/ -b devel
 cd libyang && git checkout bf1aa13ba2dfb7b5938ed2345a67de316fc34917
 
-mkdir -p build&& cd build
+mkdir -p build && cd build
 
 cmake -DCMAKE_BUILD_TYPE:String="Release" -DCMAKE_INSTALL_PREFIX:PATH=/usr \
 -DGEN_LANGUAGE_BINDINGS=ON -DGEN_CPP_BINDINGS=ON \
