@@ -128,7 +128,7 @@ static inline Status verifyGetRequest(const GetRequest *request)
 Status GNMIService::Get(ServerContext *context, const GetRequest* req,
                         GetResponse* response)
 {
-  UNUSED(context);
+  (void)context;
   RepeatedPtrField<Notification> *notificationList;
   Notification *notification;
   Status status;

@@ -11,8 +11,6 @@
 
 #include "encode/encode.h"
 
-#define UNUSED(x) (void)x
-
 using namespace grpc;
 using namespace gnmi;
 

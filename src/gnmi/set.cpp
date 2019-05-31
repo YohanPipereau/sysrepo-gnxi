@@ -95,8 +95,8 @@ StatusCode GNMIService::handleUpdate(Update in, UpdateResult *out, string prefix
 Status GNMIService::Set(ServerContext *context, const SetRequest* request,
                        SetResponse* response)
 {
+  (void)context;
   std::string prefix = "";
-  UNUSED(context);
 
   if (request->extension_size() > 0) {
     BOOST_LOG_TRIVIAL(error) << "Extensions not implemented";
