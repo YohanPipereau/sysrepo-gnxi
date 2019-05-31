@@ -30,6 +30,7 @@ using std::shared_ptr;
 class Encode {
   public:
     Encode(std::shared_ptr<sysrepo::Session> sess) : sr_sess(sess) {}
+
     virtual void update(std::string data) = 0;
     virtual std::string read(std::string xpath) = 0;
 
@@ -44,14 +45,11 @@ class Encode {
 /* Class for JSON IETF encoding */
 class JsonEncode : public Encode {
   public:
-    JsonEncode(shared_ptr<libyang::Context> lctx,shared_ptr<sysrepo::Session> sess)
-        : Encode(sess), ctx(lctx) {}
-    void update(std::string data) override;
-    std::string read(std::string xpath);
+    JsonEncode(shared_ptr<libyang::Context> lctx,
+               shared_ptr<sysrepo::Session> sess) : Encode(sess), ctx(lctx) {}
 
-  private:
-    libyang::S_Data_Node create_root_node(std::string xpath);
-    Json::Value json_tree(sysrepo::S_Tree tree);
+    void update(std::string data) override;
+    std::string read(std::string xpath) override;
 
   private:
     std::shared_ptr<libyang::Context> ctx;
