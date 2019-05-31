@@ -8,8 +8,9 @@ BR="/tmp"
 
 mkdir -p ${BR}/downloads/ && cd ${BR}/downloads/
 
-git clone https://github.com/CESNET/libyang/ -b devel
-cd libyang && git checkout bf1aa13ba2dfb7b5938ed2345a67de316fc34917
+# We need commit bf1aa13ba2dfb7b5938ed2345a67de316fc34917
+git clone https://github.com/CESNET/libyang/
+cd libyang
 
 mkdir -p build && cd build
 
