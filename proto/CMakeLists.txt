@@ -11,15 +11,15 @@ include_directories(${CMAKE_CURRENT_BINARY_DIR})
 find_package(PkgConfig REQUIRED)
 pkg_check_modules(grpc++ REQUIRED grpc++>=1.18.0)
 
+# GENERATION OF SOURCE FILES
+############################
+
 # Official gRPCConfig.cmake is installed by gRPC only if compiled with cmake
 # We just use FindGRPC.cmake to have PROTOBUF_GENERATE_GRPC_CPP function
 find_package(GRPC)
 
 get_filename_component(gnmi_proto "gnmi.proto" ABSOLUTE)
 get_filename_component(gnmi_ext_proto "gnmi_ext.proto" ABSOLUTE)
-
-# GENERATION OF SOURCE FILES
-############################
 
 # Official generator
 protobuf_generate_cpp(gnmi_proto_srcs gnmi_proto_hdrs ${gnmi_proto})
@@ -36,4 +36,4 @@ PROTOBUF_GENERATE_GRPC_CPP(gnmi_ext_grpc_srcs gnmi_ext_grpc_hdrs ${gnmi_ext_prot
 add_library(gnmi ${gnmi_grpc_srcs} ${gnmi_ext_grpc_srcs} ${gnmi_proto_srcs} ${gnmi_ext_proto_srcs})
 
 #Link our new gnmi library with grpc and protobuf libraries
-target_link_libraries(gnmi ${GRPCPP_LIBRARY} ${PROTOBUF_LIBRARIES})
+target_link_libraries(gnmi ${grpc++_LIBRARIES} ${PROTOBUF_LIBRARIES})

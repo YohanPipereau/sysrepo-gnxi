@@ -4,20 +4,9 @@
 # Once done this will define
 #
 #  GRPC_CPP_PLUGIN - Absolute path to grpc c++ plugin
-#  GRPCPP_LIBRARY -
-#  GPR_LIBRARY -
-#
-#  VPP_FOUND - system has VPP
-#  VPP_INCLUDE_DIRS - the VPP include directory
-#  VPP_LIBRARIES - Link these to use LibSSH
 
 #Absolute path to grpc_cpp_plugin
 find_program(GRPC_CPP_PLUGIN grpc_cpp_plugin)
-
-find_library(GRPC_LIBRARY NAMES grpc)
-find_library(GRPCPP_LIBRARY NAMES grpc++)
-find_library(GPR_LIBRARY NAMES gpr)
-set(GRPC_LIBRARIES ${GRPCPP_LIBRARY} ${GRPC_LIBRARY} ${GPR_LIBRARY})
 
 function(PROTOBUF_GENERATE_GRPC_CPP SRCS HDRS)
   if(NOT ARGN)
