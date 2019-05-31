@@ -20,7 +20,7 @@ string GetFileContent(string path)
 {
   std::ifstream ifs(path);
   if (!ifs) {
-    BOOST_LOG_TRIVIAL(fatal) << "File" << path << " not found";
+    BOOST_LOG_TRIVIAL(fatal) << "File " << path << " not found";
     exit(1);
   }
 

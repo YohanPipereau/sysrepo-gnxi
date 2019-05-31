@@ -12,7 +12,8 @@ list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_LIST_DIR}/CmakeModules")
 
 # dependencies - libyang
 find_package(PkgConfig) #official cmake module
-find_package(jsoncpp REQUIRED) #use official jsoncppConfig cmake
+pkg_check_modules(JSONCPP REQUIRED jsoncpp) #official pkgconfig jsoncpp
+
 find_package(Boost REQUIRED log system)
 pkg_check_modules(LIBYANG REQUIRED libyang-cpp)
 pkg_check_modules(SYSREPO REQUIRED libSysrepo-cpp) #PkgConfig cmake module maccro
@@ -59,7 +60,7 @@ add_executable(gnxi_server ${GNXI_SRC})
 target_include_directories(gnxi_server
     PUBLIC #List of include dirs required to use target binary or library
         ${Boost_INCLUDE_DIRS}
-        ${LIBJSONCPP_INCLUDE_DIR}
+        ${JSONCPP_INCLUDE_DIRS}
         ${LIBYANG_INCLUDE_DIRS}
         ${SYSREPO_INCLUDE_DIRS}
         ${PROTOBUF_INCLUDE_DIR}
@@ -73,7 +74,7 @@ link_directories(${Boost_LIBRARY_DIRS})
 
 # link gnxi_server executable with grpc, jsoncpp, sysrepo libraries
 target_link_libraries(gnxi_server gnmi
-                      ${LIBJSONCPP_LIBRARY}
+                      ${JSONCPP_LIBRARIES}
                       ${Boost_LIBRARIES}
                       ${SYSREPO_LIBRARIES}
                       ${LIBYANG_LIBRARIES}
