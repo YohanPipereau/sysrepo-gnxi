@@ -34,7 +34,7 @@ Supported authentication/encryption methods:
 sysrepo-gnxi
 +-- protobuf (>=3.0) #because of gnmi
 +-- jsoncpp #because of get JSON
-+-- grpc (cpp)
++-- grpc (cpp) (>=1.18.0) #because of TLS bug to verify client cert
 +-- libyang (cpp >=1.0-r3) #because of feature_enable
 +-- sysrepo (cpp)
 |   +-- libyang
@@ -303,3 +303,8 @@ It should be used if:
 * You are making a Get or Subscribe Request;
 * You are making a Set request with a XPATH qualifying a YANG leaf;
 * You want to exchange lighter messages (typically for telemetry).
+
+Why do I need grpc 1.18.0 ?
+===========================
+
+This server compiles with grpc 1.12.0 but as reported here https://github.com/grpc/grpc/pull/17500 , if we want to use TLS for authentication and no root certificate is specified on server side, there will be no checking of client certificate . Thus, anyone could access the server without authenticating.
