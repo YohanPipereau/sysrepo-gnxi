@@ -45,11 +45,13 @@ class ServerSecurityContext {
 
     /* Return ServerCredentials according to enum EncryptType*/
     std::shared_ptr<ServerCredentials> GetCredentials();
-    /* Set/Get Paths for PEM keys and certs */
+    /* Set/Get Paths for PEM keys and cert */
     std::string GetKeyPath() {return private_key_path;};
-    std::string GetCertsPath() {return chain_certs_path;};
+    std::string GetCertPath() {return cert_path;};
+    std::string GetRootCertPath() {return root_cert_path;};
     void SetKeyPath(std::string keyPath) {private_key_path = keyPath;};
-    void SetCertsPath(std::string certsPath) {chain_certs_path = certsPath;};
+    void SetCertPath(std::string certPath) {cert_path = certPath;};
+    void SetRootCertPath(std::string rootPath) {root_cert_path = rootPath;};
     /* Authentication Processor to parse message metadata */
     void SetUsername(std::string user) {proc->username = user;};
     void SetPassword(std::string pass) {proc->password = pass;};
@@ -66,7 +68,7 @@ class ServerSecurityContext {
 
   private:
     enum EncryptType encType;
-    std::string private_key_path, chain_certs_path; //SSL
+    std::string private_key_path, cert_path, root_cert_path; //SSL
 
     enum AuthType authType;
     UserPassProcessor *proc;

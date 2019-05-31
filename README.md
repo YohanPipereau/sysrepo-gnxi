@@ -97,6 +97,11 @@ On CA machine:
 openssl x509 -req -days 360 -in client.certreq.csr -CA ca.crt -CAkey ca.key -CAcreateserial -out client.crt -sha256
 ```
 
+You can also verify with:
+```
+openssl x509 -noout -subject -issuer -in server.crt
+```
+
 # Get started
 
 * Server/client in INSECURE mode (no username/password) and no TLS connection

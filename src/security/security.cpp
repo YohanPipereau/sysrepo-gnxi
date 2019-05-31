@@ -35,10 +35,10 @@ string GetFileContent(string path)
 /* SslCredentialsHelper -
  * @param ppath Private Key path
  * @param cpath certificates path
- * @return
+ * @return ServerCredentials for grpc service creation
  */
 std::shared_ptr<ServerCredentials>
-SslCredentialsHelper(string ppath, string cpath)
+SslCredentialsHelper(string ppath, string cpath, string rpath)
 {
   SslServerCredentialsOptions
         ssl_opts(GRPC_SSL_REQUEST_AND_REQUIRE_CLIENT_CERTIFICATE_AND_VERIFY);
@@ -48,8 +48,13 @@ SslCredentialsHelper(string ppath, string cpath)
     GetFileContent(cpath)
   };
 
-  ssl_opts.pem_root_certs = "";
   ssl_opts.pem_key_cert_pairs.push_back(pkcp);
+
+  if (!rpath.empty()) {
+    ssl_opts.pem_root_certs = GetFileContent(rpath);
+  } else {
+    ssl_opts.pem_root_certs = "";
+  }
 
   return grpc::SslServerCredentials(ssl_opts);
 }
@@ -60,7 +65,7 @@ std::shared_ptr<ServerCredentials> ServerSecurityContext::GetCredentials()
   std::shared_ptr<ServerCredentials> servCred;
 
   if (encType == SSL) {
-    servCred = SslCredentialsHelper(private_key_path, chain_certs_path);
+    servCred = SslCredentialsHelper(private_key_path, cert_path, root_cert_path);
   } else if (encType == INSECURE) {
     servCred = grpc::InsecureServerCredentials();
   } else {

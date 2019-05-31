@@ -42,8 +42,9 @@ static void show_usage(string name)
     << "\t-u,--username USERNAME\t\tDefine connection username\n"
     << "\t-p,--password PASSWORD\t\tDefine connection password\n"
     << "\t-f,--force-insecure\t\tNo TLS connection, no password authentication\n"
-    << "\t-k,--private-key PRIVATE_KEY\tpath to server PEM private key\n"
-    << "\t-c,--cert-chain CERT_CHAIN\tpath to server PEM certificate chain\n"
+    << "\t-k,--private-key PRIVATE_KEY\tpath to server TLS private key\n"
+    << "\t-c,--cert CERTIFICATE\tpath to server TLS certificate\n"
+    << "\t-r,--ca CERTIFICATE\tpath to root certificate/CA certificate\n"
     << "\t-l,--log-level LOG_LEVEL\tLog level\n"
     << "\t\t 0 = all logging turned off\n"
     << "\t\t 1 = log only error messages\n"
@@ -73,7 +74,8 @@ int main (int argc, char* argv[]) {
     {"username", required_argument, 0, 'u'},
     {"password", required_argument, 0, 'p'},
     {"private-key", required_argument, 0, 'k'}, //private key
-    {"cert-chain", required_argument, 0, 'c'}, //certificate chain
+    {"cert", required_argument, 0, 'c'}, //certificate chain
+    {"ca", required_argument, 0, 'r'}, //certificate chain
     {"force-insecure", no_argument, 0, 'f'}, //insecure mode
     {"bind", required_argument, 0, 'b'}, //insecure mode
     {0, 0, 0, 0}
@@ -83,17 +85,17 @@ int main (int argc, char* argv[]) {
    * An option character followed by ('') indicates no argument
    * An option character followed by (‘:’) indicates a required argument.
    * An option character is followed by (‘::’) indicates an optional argument.
-   * Here: no argument after (h,f) ; mandatory argument after (p,u,l,b)
+   * Here: no argument after (h,f) ; mandatory argument after (p,u,l,b,c,k,r)
    */
-  while ((c = getopt_long(argc, argv, "hfl:p:u:c:k:b:", long_options, &option_index))
+  while ((c = getopt_long(argc, argv, "hfl:p:u:c:k:r:b:", long_options, &option_index))
          != -1) {
     switch (c)
     {
-      case 'h':
+      case 'h': //help
         show_usage(argv[0]);
         exit(0);
         break;
-      case 'u':
+      case 'u': //username
         if (optarg) {
           cxt->SetAuthType(USERPASS);
           cxt->SetUsername(string(optarg));
@@ -103,7 +105,7 @@ int main (int argc, char* argv[]) {
           exit(1);
         }
         break;
-      case 'p':
+      case 'p': //password
         if (optarg) {
           cxt->SetAuthType(USERPASS);
           cxt->SetPassword(string(optarg));
@@ -113,7 +115,7 @@ int main (int argc, char* argv[]) {
           exit(1);
         }
         break;
-      case 'k':
+      case 'k': //server private key
         if (optarg) {
           cxt->SetKeyPath(string(optarg));
         } else {
@@ -122,23 +124,32 @@ int main (int argc, char* argv[]) {
           exit(1);
         }
         break;
-      case 'c':
+      case 'c': //server certificate
         if (optarg) {
-          cxt->SetCertsPath(string(optarg));
+          cxt->SetCertPath(string(optarg));
         } else {
-          cerr << "Please specify a string with chain certs path\n"
-            << "Ex: --cert-chain CERTS_PATH" << endl;
+          cerr << "Please specify a string with cert path\n"
+            << "Ex: --cert CERT" << endl;
           exit(1);
         }
         break;
-      case 'l':
+      case 'r': //CA/root certificate
+        if (optarg) {
+          cxt->SetRootCertPath(string(optarg));
+        } else {
+          cerr << "Please specify a string with CA path\n"
+            << "Ex: --ca CERT" << endl;
+          exit(1);
+        }
+        break;
+      case 'l': //log level
         if (optarg) {
           Log::setLevel(atoi(optarg));
         } else {
           cerr << "Please specify a log level" << endl;
         }
         break;
-      case 'b':
+      case 'b': //binding address
         if (optarg) {
           bind_addr = optarg;
         } else {
@@ -146,7 +157,7 @@ int main (int argc, char* argv[]) {
           exit(1);
         }
         break;
-      case 'f':
+      case 'f': //force insecure connection
         cxt->SetEncryptType(INSECURE);
         break;
       case '?':
@@ -158,7 +169,7 @@ int main (int argc, char* argv[]) {
   }
 
   if (cxt->GetEncryptType() == EncryptType::SSL) {
-    if (cxt->GetKeyPath().empty() || cxt->GetCertsPath().empty()) {
+    if (cxt->GetKeyPath().empty() || cxt->GetCertPath().empty()) {
       cerr << "Both private key and certificate required" << endl;
       exit(1);
     }
