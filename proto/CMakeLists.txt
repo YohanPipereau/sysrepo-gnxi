@@ -6,11 +6,14 @@ find_package(Protobuf 3.0.0 REQUIRED) #official cmake module
 include_directories(${PROTOBUF_INCLUDE_DIRS})
 include_directories(${CMAKE_CURRENT_BINARY_DIR})
 
-# Require at least gRPC 1.12.0, maybe earlier can be used
+# gRPC 1.12.0 will compile but to prevent a security bug, use 1.18.0
+# We leverage grpc pkg-config files in /usr/local/lib/pkgconfig
+find_package(PkgConfig REQUIRED)
+pkg_check_modules(grpc++ REQUIRED grpc++>=1.18.0)
 
-# Official gRPCConfig.cmake installed by gRPC only if compiled with cmake
-# Use our own FindGRPC.cmake instead
-find_package(GRPC 1.12.0 REQUIRED)
+# Official gRPCConfig.cmake is installed by gRPC only if compiled with cmake
+# We just use FindGRPC.cmake to have PROTOBUF_GENERATE_GRPC_CPP function
+find_package(GRPC)
 
 get_filename_component(gnmi_proto "gnmi.proto" ABSOLUTE)
 get_filename_component(gnmi_ext_proto "gnmi_ext.proto" ABSOLUTE)

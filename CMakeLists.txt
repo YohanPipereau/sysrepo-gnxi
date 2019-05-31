@@ -12,16 +12,11 @@ list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_LIST_DIR}/CmakeModules")
 
 # dependencies - libyang
 find_package(PkgConfig) #official cmake module
-find_package(JSONCPP REQUIRED) #use FindJSONCPP.cmake
+find_package(jsoncpp REQUIRED) #use official jsoncppConfig cmake
 find_package(Boost REQUIRED log system)
 pkg_check_modules(LIBYANG REQUIRED libyang-cpp)
 pkg_check_modules(SYSREPO REQUIRED libSysrepo-cpp) #PkgConfig cmake module maccro
 
-if(LIBJSONCPP_FOUND)
-    message ("LIBJSONCPP found")
-else()
-    message (FATAL_ERROR "Cannot find LIBJSONCPP")
-endif()
 
 # DEPENDENCIES & COMPILATION OF GNXI PROTO
 ##########################################
