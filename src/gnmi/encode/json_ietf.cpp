@@ -133,7 +133,7 @@ string JsonEncode::read(string xpath)
   sysrepo::S_Tree sr_tree;
   Json::StyledWriter styledwriter; //pretty JSON
   Json::FastWriter fastWriter; //unreadable JSON
-  std::string prettyJson;
+  string prettyJson;
   Json::Value val;
 
   if (xpath.back() == '.' || xpath.back() == '*') {

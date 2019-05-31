@@ -9,6 +9,7 @@
 #include <jsoncpp/json/json.h>
 
 using std::shared_ptr;
+using std::string;
 
 /*
  * Encode directory aims at providing a CRUD wrapper on top of sysrepo
@@ -31,8 +32,8 @@ class Encode {
   public:
     Encode(std::shared_ptr<sysrepo::Session> sess) : sr_sess(sess) {}
 
-    virtual void update(std::string data) = 0;
-    virtual std::string read(std::string xpath) = 0;
+    virtual void update(string data) = 0;
+    virtual string read(string xpath) = 0;
 
   protected:
     void storeTree(libyang::S_Data_Node node);
@@ -48,8 +49,8 @@ class JsonEncode : public Encode {
     JsonEncode(shared_ptr<libyang::Context> lctx,
                shared_ptr<sysrepo::Session> sess) : Encode(sess), ctx(lctx) {}
 
-    void update(std::string data) override;
-    std::string read(std::string xpath) override;
+    void update(string data) override;
+    string read(string xpath) override;
 
   private:
     std::shared_ptr<libyang::Context> ctx;
