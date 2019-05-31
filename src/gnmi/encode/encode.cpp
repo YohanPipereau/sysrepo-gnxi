@@ -3,111 +3,13 @@
 #include <exception>
 #include <libyang/Tree_Schema.hpp>
 
-#include "encode.h"
 #include <utils/log.h>
+
+#include "encode.h"
+#include "runtime.h"
 
 using namespace std;
 using namespace libyang;
-
-static void print_loaded_module(std::shared_ptr<libyang::Context> ctx)
-{
-  cout << "=================================================="
-       << endl;
-  for (auto it : ctx->get_module_iter())
-    cout << string(it->name()) << endl;
-  cout << "=================================================="
-       << endl;
-}
-
-/* Class defining callbacks when a module or a feature is loaded in sysrepo */
-class ModuleCallback : public sysrepo::Callback {
-  public:
-    ModuleCallback(shared_ptr<libyang::Context> context,
-                   shared_ptr<sysrepo::Session> sess)
-      : ctx(context), sr_sess(sess) {}
-
-    void module_install(const char *module_name, const char *revision,
-                        sr_module_state_t state, void *private_ctx) override;
-
-    //void feature_enable(const char *module_name, const char *feature_name,
-    //                    bool enable, void *private_ctx) override
-    //{
-    //    cout << "My callback" << endl;
-    ////  (void)private_ctx;
-    ////  //TODO feature loaded in sysrepo after sysrepo-gnmi has been ran
-    ////  cout << "New feature has been installed"
-    ////            << string(module_name)
-    ////            << string(feature_name) << endl;
-    //}
-
-  private:
-    void uninstall();
-    void install(const char *module_name, const char *revision);
-
-  private:
-    shared_ptr<libyang::Context> ctx;
-    shared_ptr<sysrepo::Session> sr_sess;
-};
-
-void ModuleCallback::install(const char *module_name, const char *revision)
-{
-  libyang::S_Module mod;
-  string str;
-
-  /* Is module already loaded with libyang? */
-  mod = ctx->get_module(module_name, revision);
-  if (mod != nullptr) {
-    BOOST_LOG_TRIVIAL(debug) << "Module was already loaded: "
-                             << module_name << "@" << revision;
-    return;
-  }
-
-  /* Download module from sysrepo */
-  try {
-    BOOST_LOG_TRIVIAL(debug) << "Download " << module_name << " from sysrepo";
-    str = sr_sess->get_schema(module_name, revision, nullptr, SR_SCHEMA_YANG);
-  } catch (const exception &exc) {
-    BOOST_LOG_TRIVIAL(warning) << exc.what();
-    return;
-  }
-
-  /* parse module */
-  try {
-    BOOST_LOG_TRIVIAL(debug) << "Parse " << module_name << " with libyang";
-    mod = ctx->parse_module_mem(str.c_str(), LYS_IN_YANG);
-  } catch (const exception &exc) {
-    BOOST_LOG_TRIVIAL(warning) << exc.what();
-    return;
-  }
-}
-
-void
-ModuleCallback::module_install(const char *module_name, const char *revision,
-                               sr_module_state_t state, void *private_ctx)
-{
-  (void)private_ctx;
-
-  if (ctx == nullptr) {
-    BOOST_LOG_TRIVIAL(error) << "Context can not be null";
-    return;
-  }
-
-  switch (state) {
-  case SR_MS_UNINSTALLED:
-    BOOST_LOG_TRIVIAL(warning) << "Impossible to remove a module at runtime";
-    break;
-
-  case SR_MS_IMPORTED:
-  case SR_MS_IMPLEMENTED:
-    BOOST_LOG_TRIVIAL(info) << "Install " << module_name;
-    install(module_name, revision);
-    print_loaded_module(ctx);
-    break;
-
-  default:
-    BOOST_LOG_TRIVIAL(error) << "Unknown state";
-  }
-}
 
 /*
  * @brief Fetch all modules implemented in sysrepo datastore
@@ -116,16 +18,19 @@ EncodeFactory::EncodeFactory(shared_ptr<sysrepo::Session> sess)
   : sr_sess(sess)
 {
   shared_ptr<sysrepo::Yang_Schemas> schemas; //sysrepo YANG schemas supported
-  shared_ptr<ModuleCallback> scb; //pointer to callback class
+  shared_ptr<RuntimeSrCallback> scb; //pointer to callback class
   sub = make_shared<sysrepo::Subscribe>(sr_sess); //sysrepo subscriptions
   S_Module mod;
   string str;
+
+  //Libyang log level should be ERROR only
+  set_log_verbosity(LY_LLERR);
 
   /* 1. build libyang context */
   ctx = make_shared<Context>();
 
   /* Instantiate Callback class */
-  scb = make_shared<ModuleCallback>(ctx, sess);
+  scb = make_shared<RuntimeSrCallback>(ctx, sess);
 
   /* 2. get the list of schemas from sysrepo */
   try {
@@ -155,7 +60,8 @@ EncodeFactory::EncodeFactory(shared_ptr<sysrepo::Session> sess)
   /* 3.2 register callback for missing YANG module */
   ctx->add_missing_module_callback(mod_c_cb);
 
-  /* 4. use modules from sysrepo */
+  /* 4. Initialize our libyang context with modules and features
+   * already loaded in sysrepo */
   for (unsigned int i = 0; i < schemas->schema_cnt(); i++) {
     string module_name = schemas->schema(i)->module_name();
     string revision = schemas->schema(i)->revision()->revision();
@@ -193,8 +99,8 @@ EncodeFactory::EncodeFactory(shared_ptr<sysrepo::Session> sess)
   /* 5. subscribe for notifications about new modules */
   sub->module_install_subscribe(scb, ctx.get(), sysrepo::SUBSCR_DEFAULT);
 
-  ///* 6. subscribe for changes of features state */
-  //TODO sub->feature_enable_subscribe(scb);
+  /* 6. subscribe for changes of features state */
+  sub->feature_enable_subscribe(scb);
 }
 
 EncodeFactory::~EncodeFactory()
