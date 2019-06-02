@@ -12,15 +12,16 @@ using std::shared_ptr;
 using std::string;
 
 /*
- * Encode directory aims at providing a CRUD wrapper on top of sysrepo
- * for JSON encoding (other encodings can be added).
+ * Encode directory aims at providing a CREATE-UPDATE-READ wrapper on top of
+ * sysrepo for JSON encoding (other encodings can be added).
  * It provides YANG validation before storing elements and after fetching them
  * in sysrepo.
  *
  * -update()  CREATE & UPDATE
  * -read()    READ
- * -delete()  DELETE //TODO
  *
+ * DELETE is not supported as it is not dependent of encodings.
+ * Use sr_delete_item to suppress subtree from a xpath directly.
  */
 
 /*
