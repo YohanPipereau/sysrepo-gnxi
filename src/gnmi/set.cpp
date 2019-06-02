@@ -28,12 +28,10 @@ StatusCode GNMIService::handleUpdate(Update in, UpdateResult *out, string prefix
       break;
     case gnmi::TypedValue::ValueCase::kIntVal: /* No Encoding */
       sval = make_shared<Val>(reqval.int_val(), SR_INT64_T);
-      //sval = make_shared<Val>(reqval.int_val());
       sr_sess->set_item(fullpath.c_str(), sval);
       break;
     case gnmi::TypedValue::ValueCase::kUintVal: /* No Encoding */
       sval = make_shared<Val>(reqval.uint_val(), SR_UINT64_T);
-      //sval = make_shared<Val>(reqval.uint_val());
       sr_sess->set_item(fullpath.c_str(), sval);
       break;
     case gnmi::TypedValue::ValueCase::kBoolVal: /* No Encoding */
@@ -51,7 +49,6 @@ StatusCode GNMIService::handleUpdate(Update in, UpdateResult *out, string prefix
       throw std::invalid_argument("Unsupported Decimal64 type");
       return StatusCode::UNIMPLEMENTED;
     case gnmi::TypedValue::ValueCase::kLeaflistVal:
-      //TODO Need to support this
       throw std::invalid_argument("Unsupported leaflist type");
       return StatusCode::UNIMPLEMENTED;
     case gnmi::TypedValue::ValueCase::kAnyVal:

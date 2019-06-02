@@ -162,9 +162,8 @@ void Encode::storeTree(libyang::S_Data_Node node)
 
       case LYS_LEAFLIST: //Only LEAF & LEAF LIST hold values in sysrepo
         BOOST_LOG_TRIVIAL(warning) << "Unsupported leaf-list: " << it->path();
+        //sysrepo does not seem to support leaf lists
         break;
-        //TODO all leaves hav the same type, but there can be multiple
-        //Are they all read-only?
 
       case LYS_LIST: //A list instance must be created before populating leaves
         {

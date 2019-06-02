@@ -10,8 +10,9 @@ using namespace std;
 using google::protobuf::RepeatedPtrField;
 using sysrepo::sysrepo_exception;
 
-Status GNMIService::BuildUpdate(RepeatedPtrField<Update>* updateList, const Path &path,
-                               std::string fullpath, gnmi::Encoding encoding)
+Status
+GNMIService::BuildUpdate(RepeatedPtrField<Update>* updateList, const Path &path,
+                         string fullpath, gnmi::Encoding encoding)
 {
   Update *update;
   TypedValue *gnmival;
@@ -138,8 +139,8 @@ Status GNMIService::Get(ServerContext *context, const GetRequest* req,
     return status;
 
   BOOST_LOG_TRIVIAL(debug) << "GetRequest DataType "
-                           << GetRequest::DataType_Name(req->type());
-  BOOST_LOG_TRIVIAL(debug) << "GetRequest Encoding "
+                           << GetRequest::DataType_Name(req->type()) << ","
+                           << "GetRequest Encoding "
                            << Encoding_Name(req->encoding());
 
   /* Run through all paths */
