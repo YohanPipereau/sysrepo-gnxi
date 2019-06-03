@@ -3,6 +3,7 @@
 #include <grpc/grpc.h>
 
 #include "gnmi.h"
+#include "encode/encode.h"
 #include <utils/utils.h>
 #include <utils/log.h>
 

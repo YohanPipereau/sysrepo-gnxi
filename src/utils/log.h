@@ -20,7 +20,14 @@ namespace logging = boost::log;
 */
 class Log {
   public:
-    Log(int lvl = 2);
+    /*
+     * lvl 0 : fatal
+     * lvl 1 : error
+     * lvl 2 : warning
+     * lvl 3 : info
+     * lvl 4 : debug
+     */
+    Log(int lvl = 3); //default to 'info' log
     ~Log() {}
 
     static void setLevel(int lvl);
