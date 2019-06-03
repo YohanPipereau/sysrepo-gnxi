@@ -97,9 +97,15 @@ On CA machine:
 openssl x509 -req -days 360 -in client.certreq.csr -CA ca.crt -CAkey ca.key -CAcreateserial -out client.crt -sha256
 ```
 
-You can also verify with:
+Verify the informations:
 ```
+#Check information
 openssl x509 -noout -subject -issuer -in server.crt
+openssl x509 -noout -subject -issuer -in client.crt
+
+# Verify chain certs
+openssl verify -CAfile ca.crt -show_chain client.crt
+openssl verify -CAfile ca.crt -show_chain server.crt
 ```
 
 # Get started
