@@ -99,6 +99,9 @@ shared_ptr<ServerCredentials> AuthBuilder::build()
     BOOST_LOG_TRIVIAL(fatal) << "Impossible to use user/pass auth with"
                              << " insecure connection";
 
+
+  BOOST_LOG_TRIVIAL(fatal) << "Unsupported Authentication method";
+
   exit(1);
 }
 

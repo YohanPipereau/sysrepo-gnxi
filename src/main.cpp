@@ -91,76 +91,35 @@ int main (int argc, char* argv[]) {
          != -1) {
     switch (c)
     {
-      case 'h': //help
+      case '?': //help
+      case 'h':
         show_usage(argv[0]);
         exit(0);
         break;
       case 'u': //username
-        if (optarg) {
-          auth.setUsername(string(optarg));
-        } else {
-          cerr << "Please specify a string with username option\n"
-            << "Ex: -u USERNAME" << endl;
-          exit(1);
-        }
+        auth.setUsername(string(optarg));
         break;
       case 'p': //password
-        if (optarg) {
-          auth.setPassword(string(optarg));
-        } else {
-          cerr << "Please specify a string with password option\n"
-            << "Ex: -p PASSWORD" << endl;
-          exit(1);
-        }
+        auth.setPassword(string(optarg));
         break;
       case 'k': //server private key
-        if (optarg) {
-          auth.setKeyPath(string(optarg));
-        } else {
-          cerr << "Please specify a string with private key path\n"
-            << "Ex: --private-key KEY_PATH" << endl;
-          exit(1);
-        }
+        auth.setKeyPath(string(optarg));
         break;
       case 'c': //server certificate
-        if (optarg) {
-          auth.setCertPath(string(optarg));
-        } else {
-          cerr << "Please specify a string with cert path\n"
-            << "Ex: --cert CERT" << endl;
-          exit(1);
-        }
+        auth.setCertPath(string(optarg));
         break;
       case 'r': //CA/root certificate
-        if (optarg) {
-          auth.setRootCertPath(string(optarg));
-        } else {
-          cerr << "Please specify a string with CA path\n"
-            << "Ex: --ca CERT" << endl;
-          exit(1);
-        }
+        auth.setRootCertPath(string(optarg));
         break;
       case 'l': //log level
-        if (optarg) {
-          Log::setLevel(atoi(optarg));
-        } else {
-          cerr << "Please specify a log level" << endl;
-        }
+        Log::setLevel(atoi(optarg));
         break;
       case 'b': //binding address
-        if (optarg) {
-          bind_addr = optarg;
-        } else {
-          cerr << "Please specify a string with binding address" << endl;
-          exit(1);
-        }
+        bind_addr = optarg;
         break;
       case 'f': //force insecure connection
         auth.setInsecure(true);
         break;
-      case '?':
-        show_usage(argv[0]);
-        exit(1);
       default: /* You won't get there */
         exit(1);
     }
