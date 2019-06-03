@@ -4,7 +4,7 @@
 
 #include <utils/log.h>
 
-#include "security.h"
+#include "authentication.h"
 
 using namespace std;
 using grpc::Status;
@@ -74,7 +74,9 @@ shared_ptr<ServerCredentials> AuthBuilder::build()
   if (!private_key_path.empty() && !cert_path.empty()
       && username.empty() && password.empty()) {
     BOOST_LOG_TRIVIAL(info) << "Mutual TLS authentication";
-    return SslCredentialsHelper(private_key_path, cert_path, root_cert_path, true);
+    cred = SslCredentialsHelper(private_key_path, cert_path, root_cert_path, true);
+    cred->SetAuthMetadataProcessor(make_shared<TLSProcessor>());
+    return cred;
   }
 
   // USERPASS_TLS
@@ -83,7 +85,7 @@ shared_ptr<ServerCredentials> AuthBuilder::build()
     BOOST_LOG_TRIVIAL(info) << "Username/Password over TLS authentication";
     cred = SslCredentialsHelper(private_key_path, cert_path, root_cert_path, false);
     cred->SetAuthMetadataProcessor(
-        make_shared<UserPassProcessor>(username, password));
+        make_shared<UserPassAuthenticator>(username, password));
     return cred;
   }
 
@@ -142,7 +144,7 @@ AuthBuilder& AuthBuilder::setInsecure(bool mode)
 }
 
 /* Implement a MetadataProcessor for username/password authentication */
-Status UserPassProcessor::Process(const InputMetadata& auth_metadata,
+Status UserPassAuthenticator::Process(const InputMetadata& auth_metadata,
                                       grpc::AuthContext* context,
                                       OutputMetadata* consumed_auth_metadata,
                                       OutputMetadata* response_metadata)
@@ -175,6 +177,26 @@ Status UserPassProcessor::Process(const InputMetadata& auth_metadata,
   consumed_auth_metadata->insert(make_pair(
         string(pass_kv->first.data(), pass_kv->first.length()),
         string(pass_kv->second.data(), pass_kv->second.length())));
+
+  return Status::OK;
+}
+
+/* Implement a MetadataProcessor for Mutual TLS authentication */
+Status TLSProcessor::Process(const InputMetadata& auth_metadata,
+                                  grpc::AuthContext* context,
+                                  OutputMetadata* consumed_auth_metadata,
+                                  OutputMetadata* response_metadata)
+{
+  (void)response_metadata; (void) consumed_auth_metadata;
+  (void)response_metadata; //Unused
+  string property_name;
+
+  property_name = context->GetPeerIdentityPropertyName();
+
+  auto identities = context->GetPeerIdentity();
+  for (auto it : identities) {
+    cout << it << endl;
+  }
 
   return Status::OK;
 }

@@ -86,7 +86,7 @@ On client machine:
 
 ```
 #Generate client key, certificate request, make CA sign it
-#FQDN is optional because server can not initiate TLS connection for now (Dialout)
+#FQDN/CN is used for MUTUAL TLS authentication. So CN will be the identiy used for access control
 openssl  req -new -days  365 -nodes  -newkey  rsa:2048 -keyout  client.key -out  client.certreq.csr
 ```
 

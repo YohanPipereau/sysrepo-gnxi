@@ -10,7 +10,7 @@
 #include <grpcpp/server_builder.h>
 
 #include "gnmi/gnmi.h"
-#include <security/security.h>
+#include <security/authentication.h>
 #include <utils/log.h>
 
 using namespace std;

@@ -11,11 +11,11 @@ using grpc::Status;
  * Authenticate request with username/password comparaison
  * by using metadata fields.
  */
-class UserPassProcessor final : public grpc::AuthMetadataProcessor {
+class UserPassAuthenticator final : public grpc::AuthMetadataProcessor {
   public:
-    UserPassProcessor(std::string user, std::string pass)
+    UserPassAuthenticator(std::string user, std::string pass)
       : username(user), password(pass) {}
-    ~UserPassProcessor() {}
+    ~UserPassAuthenticator() {}
 
     Status Process(const InputMetadata& auth_metadata,
                    grpc::AuthContext* context,
@@ -24,6 +24,18 @@ class UserPassProcessor final : public grpc::AuthMetadataProcessor {
 
   private:
     std::string username, password;
+};
+
+
+class TLSProcessor final : public grpc::AuthMetadataProcessor {
+  public:
+    TLSProcessor() {}
+    ~TLSProcessor() {}
+
+    Status Process(const InputMetadata& auth_metadata,
+                   grpc::AuthContext* context,
+                   OutputMetadata* consumed_auth_metadata,
+                   OutputMetadata* response_metadata) override;
 };
 
 /* Supported Authentication methods */
