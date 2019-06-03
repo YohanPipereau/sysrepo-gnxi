@@ -7,8 +7,16 @@ using grpc::ServerCredentials;
 using grpc::SslServerCredentialsOptions;
 using grpc::Status;
 
+/*
+ * Authenticate request with username/password comparaison
+ * by using metadata fields.
+ */
 class UserPassProcessor final : public grpc::AuthMetadataProcessor {
   public:
+    UserPassProcessor(std::string user, std::string pass)
+      : username(user), password(pass) {}
+    ~UserPassProcessor() {}
+
     Status Process(const InputMetadata& auth_metadata,
                    grpc::AuthContext* context,
                    OutputMetadata* consumed_auth_metadata,
@@ -16,60 +24,37 @@ class UserPassProcessor final : public grpc::AuthMetadataProcessor {
 
   private:
     std::string username, password;
-
-  friend class ServerSecurityContext;
 };
 
 /* Supported Authentication methods */
 enum AuthType {
-  NOAUTH,
-  USERPASS
+  INSECURE,       // No Username/password, no encryption
+  USERPASS_TLS,   // Username/password, TLS encryption
+  MUTUAL_TLS      // TLS authentication & encryption
 };
 
-/* Supported Encryption methods */
-enum EncryptType {
-  SSL,
-  INSECURE
-};
-
-/*
- * Represents server security context. Carries:
- * - Encryption informations : Either Tls or Insecure
- * - Authentication informations: Based on Metadata Processor or Interceptor
- */
-class ServerSecurityContext {
+class AuthBuilder {
   public:
-    ServerSecurityContext() : encType(SSL), authType(NOAUTH)
-      {proc = new UserPassProcessor();};
-    ~ServerSecurityContext() {delete proc;};
+    AuthBuilder() {}
+    ~AuthBuilder() {}
 
     /* Return ServerCredentials according to enum EncryptType*/
-    std::shared_ptr<ServerCredentials> GetCredentials();
-    /* Set/Get Paths for PEM keys and cert */
-    std::string GetKeyPath() {return private_key_path;};
-    std::string GetCertPath() {return cert_path;};
-    std::string GetRootCertPath() {return root_cert_path;};
-    void SetKeyPath(std::string keyPath) {private_key_path = keyPath;};
-    void SetCertPath(std::string certPath) {cert_path = certPath;};
-    void SetRootCertPath(std::string rootPath) {root_cert_path = rootPath;};
-    /* Authentication Processor to parse message metadata */
-    void SetUsername(std::string user) {proc->username = user;};
-    void SetPassword(std::string pass) {proc->password = pass;};
-    std::string GetUsername() {return proc->username;};
-    std::string GetPassword() {return proc->password;};
-    /* Set/Get Encryption Type of this security context */
-    void SetEncryptType(enum EncryptType type) {encType = type;};
-    enum EncryptType GetEncryptType() {return encType;};
-    /* Set/Get Authentication Type of this security context */
-    void SetAuthType(enum AuthType type) {authType = type;};
-    enum AuthType GetAuthType() {return authType;};
+    std::shared_ptr<ServerCredentials> build();
 
-    friend class UserPassProcessor;
+    /* TLS */
+    AuthBuilder& setKeyPath(std::string keyPath);
+    AuthBuilder& setCertPath(std::string certPath);
+    AuthBuilder& setRootCertPath(std::string rootPath);
+
+    /* Username/password */
+    AuthBuilder& setUsername(std::string username);
+    AuthBuilder& setPassword(std::string password);
+
+    AuthBuilder& setInsecure(bool mode);
 
   private:
-    enum EncryptType encType;
     std::string private_key_path, cert_path, root_cert_path; //SSL
-
-    enum AuthType authType;
-    UserPassProcessor *proc;
+    std::string username, password;
+    bool insecure = false;
 };
+

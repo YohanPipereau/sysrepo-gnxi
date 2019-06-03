@@ -6,9 +6,7 @@
 
 #include "security.h"
 
-using std::string;
-using std::shared_ptr;
-using std::istreambuf_iterator;
+using namespace std;
 using grpc::Status;
 using grpc::StatusCode;
 
@@ -16,9 +14,9 @@ using grpc::StatusCode;
  * @param Path to the file
  * @return String containing the entire File.
  */
-string GetFileContent(string path)
+static string GetFileContent(string path)
 {
-  std::ifstream ifs(path);
+  ifstream ifs(path);
   if (!ifs) {
     BOOST_LOG_TRIVIAL(fatal) << "File " << path << " not found";
     exit(1);
@@ -35,13 +33,21 @@ string GetFileContent(string path)
 /* SslCredentialsHelper -
  * @param ppath Private Key path
  * @param cpath certificates path
+ * @param rpath root certificate path
+ * @param client_cert boolean to activate/deactivate client certificate check
  * @return ServerCredentials for grpc service creation
  */
-std::shared_ptr<ServerCredentials>
-SslCredentialsHelper(string ppath, string cpath, string rpath)
+static shared_ptr<ServerCredentials>
+SslCredentialsHelper(string ppath, string cpath, string rpath, bool client_cert)
 {
-  SslServerCredentialsOptions
-        ssl_opts(GRPC_SSL_REQUEST_AND_REQUIRE_CLIENT_CERTIFICATE_AND_VERIFY);
+  SslServerCredentialsOptions ssl_opts;
+
+  if (client_cert)
+    ssl_opts.client_certificate_request =
+     GRPC_SSL_REQUEST_AND_REQUIRE_CLIENT_CERTIFICATE_AND_VERIFY;
+  else
+    ssl_opts.client_certificate_request =
+     GRPC_SSL_DONT_REQUEST_CLIENT_CERTIFICATE;
 
   SslServerCredentialsOptions::PemKeyCertPair pkcp = {
     GetFileContent(ppath),
@@ -60,32 +66,76 @@ SslCredentialsHelper(string ppath, string cpath, string rpath)
 }
 
 /* Get Server Credentials according to Scurity Context policy */
-std::shared_ptr<ServerCredentials> ServerSecurityContext::GetCredentials()
+shared_ptr<ServerCredentials> AuthBuilder::build()
 {
-  std::shared_ptr<ServerCredentials> servCred;
+  shared_ptr<ServerCredentials> cred;
 
-  if (encType == SSL) {
-    servCred = SslCredentialsHelper(private_key_path, cert_path, root_cert_path);
-  } else if (encType == INSECURE) {
-    servCred = grpc::InsecureServerCredentials();
-  } else {
-    BOOST_LOG_TRIVIAL(fatal) << "Unknown Encryption Type";
-    exit(1);
+  // MUTUAL_TLS
+  if (!private_key_path.empty() && !cert_path.empty()
+      && username.empty() && password.empty()) {
+    BOOST_LOG_TRIVIAL(info) << "Mutual TLS authentication";
+    return SslCredentialsHelper(private_key_path, cert_path, root_cert_path, true);
   }
 
-  if (authType == NOAUTH)
-    return servCred;
-  else if (authType == USERPASS && encType == SSL) {
-      servCred->SetAuthMetadataProcessor(shared_ptr<UserPassProcessor>(proc));
-      return servCred;
-  } else if (authType == USERPASS && encType == INSECURE) {
+  // USERPASS_TLS
+  if (!private_key_path.empty() && !cert_path.empty()
+      && !username.empty() && !password.empty()) {
+    BOOST_LOG_TRIVIAL(info) << "Username/Password over TLS authentication";
+    cred = SslCredentialsHelper(private_key_path, cert_path, root_cert_path, false);
+    cred->SetAuthMetadataProcessor(
+        make_shared<UserPassProcessor>(username, password));
+    return cred;
+  }
+
+  //INSECURE
+  if (insecure) {
+    BOOST_LOG_TRIVIAL(info) << "Insecure authentication";
+    return grpc::InsecureServerCredentials();
+  }
+
+  /* impossible scenario */
+  if (private_key_path.empty() && cert_path.empty()
+      && !username.empty() && !password.empty())
     BOOST_LOG_TRIVIAL(fatal) << "Impossible to use user/pass auth with"
                              << " insecure connection";
-    exit(1);
-  } else {
-    BOOST_LOG_TRIVIAL(fatal) << "Unknown Authentication Type";
-    exit(1);
-  }
+
+  exit(1);
+}
+
+AuthBuilder& AuthBuilder::setKeyPath(string keyPath)
+{
+  private_key_path = keyPath;
+  return *this;
+}
+
+AuthBuilder& AuthBuilder::setCertPath(string certPath)
+{
+  cert_path = certPath;
+  return *this;
+}
+
+AuthBuilder& AuthBuilder::setRootCertPath(string rootpath)
+{
+  root_cert_path = rootpath;
+  return *this;
+}
+
+AuthBuilder& AuthBuilder::setUsername(string user)
+{
+  username = user;
+  return *this;
+}
+
+AuthBuilder& AuthBuilder::setPassword(string pass)
+{
+  password = pass;
+  return *this;
+}
+
+AuthBuilder& AuthBuilder::setInsecure(bool mode)
+{
+  insecure = mode;
+  return *this;
 }
 
 /* Implement a MetadataProcessor for username/password authentication */
@@ -116,10 +166,10 @@ Status UserPassProcessor::Process(const InputMetadata& auth_metadata,
   }
 
   /* Remove username and password key-value from metadata */
-  consumed_auth_metadata->insert(std::make_pair(
+  consumed_auth_metadata->insert(make_pair(
         string(user_kv->first.data(), user_kv->first.length()),
         string(user_kv->second.data(), user_kv->second.length())));
-  consumed_auth_metadata->insert(std::make_pair(
+  consumed_auth_metadata->insert(make_pair(
         string(pass_kv->first.data(), pass_kv->first.length()),
         string(pass_kv->second.data(), pass_kv->second.length())));
 

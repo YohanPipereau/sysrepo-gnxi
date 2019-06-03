@@ -15,12 +15,12 @@
 
 using namespace std;
 
-void RunServer(ServerSecurityContext *cxt, string bind_addr)
+void RunServer(string bind_addr, shared_ptr<ServerCredentials> cred)
 {
   ServerBuilder builder;
   GNMIService gnmi("gnmi"); //gNMI Service
 
-  builder.AddListeningPort(bind_addr, cxt->GetCredentials());
+  builder.AddListeningPort(bind_addr, cred);
   builder.RegisterService(&gnmi);
   unique_ptr<Server> server(builder.BuildAndStart());
   cout << "Using grpc " << grpc::Version() << endl;
@@ -65,7 +65,7 @@ int main (int argc, char* argv[]) {
   string bind_addr = "localhost:50051";
   string username, password;
   Log();
-  ServerSecurityContext *cxt = new ServerSecurityContext();
+  AuthBuilder auth;
 
   static struct option long_options[] =
   {
@@ -97,8 +97,7 @@ int main (int argc, char* argv[]) {
         break;
       case 'u': //username
         if (optarg) {
-          cxt->SetAuthType(USERPASS);
-          cxt->SetUsername(string(optarg));
+          auth.setUsername(string(optarg));
         } else {
           cerr << "Please specify a string with username option\n"
             << "Ex: -u USERNAME" << endl;
@@ -107,8 +106,7 @@ int main (int argc, char* argv[]) {
         break;
       case 'p': //password
         if (optarg) {
-          cxt->SetAuthType(USERPASS);
-          cxt->SetPassword(string(optarg));
+          auth.setPassword(string(optarg));
         } else {
           cerr << "Please specify a string with password option\n"
             << "Ex: -p PASSWORD" << endl;
@@ -117,7 +115,7 @@ int main (int argc, char* argv[]) {
         break;
       case 'k': //server private key
         if (optarg) {
-          cxt->SetKeyPath(string(optarg));
+          auth.setKeyPath(string(optarg));
         } else {
           cerr << "Please specify a string with private key path\n"
             << "Ex: --private-key KEY_PATH" << endl;
@@ -126,7 +124,7 @@ int main (int argc, char* argv[]) {
         break;
       case 'c': //server certificate
         if (optarg) {
-          cxt->SetCertPath(string(optarg));
+          auth.setCertPath(string(optarg));
         } else {
           cerr << "Please specify a string with cert path\n"
             << "Ex: --cert CERT" << endl;
@@ -135,7 +133,7 @@ int main (int argc, char* argv[]) {
         break;
       case 'r': //CA/root certificate
         if (optarg) {
-          cxt->SetRootCertPath(string(optarg));
+          auth.setRootCertPath(string(optarg));
         } else {
           cerr << "Please specify a string with CA path\n"
             << "Ex: --ca CERT" << endl;
@@ -158,7 +156,7 @@ int main (int argc, char* argv[]) {
         }
         break;
       case 'f': //force insecure connection
-        cxt->SetEncryptType(INSECURE);
+        auth.setInsecure(true);
         break;
       case '?':
         show_usage(argv[0]);
@@ -168,22 +166,7 @@ int main (int argc, char* argv[]) {
     }
   }
 
-  if (cxt->GetEncryptType() == EncryptType::SSL) {
-    if (cxt->GetKeyPath().empty() || cxt->GetCertPath().empty()) {
-      cerr << "Both private key and certificate required" << endl;
-      exit(1);
-    }
-    cout << "Initiate a TLS connection" << endl;
-  }
-
-  if (cxt->GetAuthType() == AuthType::USERPASS) {
-    if (cxt->GetUsername().empty() || cxt->GetPassword().empty()) {
-      cerr << "Both username and password required" << endl;
-      exit(1);
-    }
-  }
-
-  RunServer(cxt, bind_addr);
+  RunServer(bind_addr, auth.build());
 
   return 0;
 }
