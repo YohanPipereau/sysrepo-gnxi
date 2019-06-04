@@ -149,7 +149,7 @@ Status UserPassAuthenticator::Process(const InputMetadata& auth_metadata,
                                       OutputMetadata* consumed_auth_metadata,
                                       OutputMetadata* response_metadata)
 {
-  (void)context; (void)response_metadata; //Unused
+  (void)response_metadata; //Unused
 
   /* Look for username/password fields in Metadata sent by client */
   auto user_kv = auth_metadata.find("username");
@@ -169,6 +169,11 @@ Status UserPassAuthenticator::Process(const InputMetadata& auth_metadata,
     BOOST_LOG_TRIVIAL(error) << "Invalid username/password";
     return Status(StatusCode::UNAUTHENTICATED, "Invalid username/password");
   }
+
+  /* Add "username" property to AuthContext */
+  context->AddProperty("username",
+                      string(user_kv->second.data(), user_kv->second.length()));
+  context->SetPeerIdentityPropertyName("username");
 
   /* Remove username and password key-value from metadata */
   consumed_auth_metadata->insert(make_pair(

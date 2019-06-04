@@ -47,6 +47,9 @@ class GNMIService final : public gNMI::Service
         ServerReaderWriter<SubscribeResponse, SubscribeRequest>* stream);
 
   private:
+    sysrepo::S_Session createSession(ServerContext *context);
+
+  private:
     sysrepo::S_Connection sr_con; //sysrepo connection
     sysrepo::S_Session sr_sess; //sysrepo session
     shared_ptr<EncodeFactory> encodef; //support for json ietf encoding
