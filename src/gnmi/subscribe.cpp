@@ -65,14 +65,13 @@ GNMIService::BuildSubsUpdate(RepeatedPtrField<Update>* updateList,
  * BuildSubscribeNotification - Build a Notification message.
  * Contrary to Get Notification, gnmi specification highly recommands to
  * put multiple <xpath, value> in the same Notification message.
+ * @param notification the notification that is constructed by this function.
  * @param request the SubscriptionList from SubscribeRequest to answer to.
- * @param response the SubscribeResponse that is constructed by this function.
  */
 Status
-GNMIService::BuildSubscribeNotification(const SubscriptionList& request,
-                                       SubscribeResponse& response)
+GNMIService::BuildSubscribeNotification(Notification *notification,
+                                        const SubscriptionList& request)
 {
-  Notification *notification = response.mutable_update();
   RepeatedPtrField<Update>* updateList = notification->mutable_update();
   Status status;
 
@@ -157,7 +156,8 @@ Status GNMIService::handleStream(
   }
 
   // Sends a first Notification message that updates all Subcriptions
-  status = BuildSubscribeNotification(request.subscribe(), response);
+  status = BuildSubscribeNotification(response.mutable_update(),
+                                      request.subscribe());
   if (!status.ok()) {
     context->TryCancel();
     return status;
@@ -210,7 +210,8 @@ Status GNMIService::handleStream(
     }
 
     if (updateList->subscription_size() > 0) {
-      status = BuildSubscribeNotification(updateRequest.subscribe(), response);
+      status = BuildSubscribeNotification(response.mutable_update(),
+                                          updateRequest.subscribe());
       if(!status.ok()) {
         context->TryCancel();
         return status;
@@ -238,7 +239,8 @@ Status GNMIService::handleOnce(ServerContext* context, SubscribeRequest request,
 
   // Sends a Notification message that updates all Subcriptions once
   SubscribeResponse response;
-  status = BuildSubscribeNotification(request.subscribe(), response);
+  status = BuildSubscribeNotification(response.mutable_update(),
+                                      request.subscribe());
   if (!status.ok()) {
     context->TryCancel();
     return status;
@@ -272,7 +274,8 @@ Status GNMIService::handlePoll(ServerContext* context, SubscribeRequest request,
         {
           // Sends a Notification message that updates all Subcriptions once
           SubscribeResponse response;
-          status = BuildSubscribeNotification(subscription.subscribe(), response);
+          status = BuildSubscribeNotification(response.mutable_update(),
+                                              subscription.subscribe());
           if (!status.ok()) {
             context->TryCancel();
             return status;

@@ -60,8 +60,8 @@ class GNMIService final : public gNMI::Service
     Status BuildSubsUpdate(RepeatedPtrField<Update>* updateList,
                            const Path &path, string fullpath,
                            gnmi::Encoding encoding);
-    Status BuildSubscribeNotification(const SubscriptionList& request,
-                                      SubscribeResponse& response);
+    Status BuildSubscribeNotification(Notification *notification,
+                                      const SubscriptionList& request);
     Status handleStream(ServerContext* context, SubscribeRequest request,
               ServerReaderWriter<SubscribeResponse, SubscribeRequest>* stream);
     Status handleOnce(ServerContext* context, SubscribeRequest request,
