@@ -12,8 +12,9 @@ using google::protobuf::RepeatedPtrField;
 using sysrepo::sysrepo_exception;
 
 Status
-GNMIService::BuildUpdate(RepeatedPtrField<Update>* updateList, const Path &path,
-                         string fullpath, gnmi::Encoding encoding)
+GNMIService::BuildGetUpdate(RepeatedPtrField<Update>* updateList,
+                            const Path &path, string fullpath,
+                            gnmi::Encoding encoding)
 {
   Update *update;
   TypedValue *gnmival;
@@ -88,7 +89,7 @@ GNMIService::BuildGetNotification(Notification *notification, const Path *prefix
    * This is interesting for NMDA architecture
    * req->type() : GetRequest_DataType_ALL,CONFIG,STATE,OPERATIONAL
    */
-  return BuildUpdate(updateList, path, fullpath, encoding);
+  return BuildGetUpdate(updateList, path, fullpath, encoding);
 }
 
 /* Verify request fields are correct */

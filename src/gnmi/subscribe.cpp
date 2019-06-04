@@ -14,6 +14,52 @@
 using namespace std;
 using namespace chrono;
 using google::protobuf::RepeatedPtrField;
+using sysrepo::sysrepo_exception;
+
+Status
+GNMIService::BuildSubsUpdate(RepeatedPtrField<Update>* updateList,
+                            const Path &path, string fullpath,
+                            gnmi::Encoding encoding)
+{
+  Update *update;
+  TypedValue *gnmival;
+  string *json_ietf;
+
+  /* Create Update message */
+  update = updateList->Add();
+  update->mutable_path()->CopyFrom(path);
+  gnmival = update->mutable_val();
+
+  /* Refresh configuration data from current session */
+  sr_sess->refresh();
+
+  /* Create appropriate TypedValue message based on encoding */
+  switch (encoding) {
+    case gnmi::JSON:
+    case gnmi::JSON_IETF:
+      json_ietf = gnmival->mutable_json_ietf_val();
+      /* Get sysrepo subtree data corresponding to XPATH */
+      try {
+        *json_ietf = encodef->getEncoding(EncodeFactory::Encoding::JSON_IETF)->read(fullpath);
+      } catch (invalid_argument &exc) {
+        return Status(StatusCode::NOT_FOUND, exc.what());
+      } catch (sysrepo_exception &exc) {
+        BOOST_LOG_TRIVIAL(error) << "Fail getting items from sysrepo "
+                                 << exc.what();
+        return Status(StatusCode::INVALID_ARGUMENT, exc.what());
+      }
+      break;
+
+    case gnmi::PROTO:
+      BOOST_LOG_TRIVIAL(error) << "Deviation from specification, Unsupported Yet";
+      break;
+
+    default:
+      return Status(StatusCode::UNIMPLEMENTED, Encoding_Name(encoding));
+  }
+
+  return Status::OK;
+}
 
 /**
  * BuildSubscribeNotification - Build a Notification message.
@@ -73,7 +119,7 @@ GNMIService::BuildSubscribeNotification(const SubscriptionList& request,
     Subscription sub = request.subscription(i);
 
     // Fetch all found counters value for a requested path
-    status = BuildUpdate(updateList, sub.path(), gnmi_to_xpath(sub.path()),
+    status = BuildSubsUpdate(updateList, sub.path(), gnmi_to_xpath(sub.path()),
                          request.encoding());
     if (!status.ok()) {
       BOOST_LOG_TRIVIAL(error) << "Fail building update for "
