@@ -55,16 +55,12 @@ GNMIService::BuildSubscribeNotification(const SubscriptionList& request,
   /* Get time since epoch in milliseconds */
   notification->set_timestamp(get_time_nanosec());
 
-  /* Notification message prefix based on SubscriptionList prefix */
+  /* TODO Notification message prefix based on SubscriptionList prefix */
   if (request.has_prefix() && request.prefix().elem_size() > 0) {
     BOOST_LOG_TRIVIAL(warning) << "prefix can not be used in Subscribe: "
                                << gnmi_to_xpath(request.prefix());
     return Status(StatusCode::UNIMPLEMENTED, "Prefix not supported");
   }
-
-  /* Response prefix will carry informations for InfluxDB */
-  Path* prefix = notification->mutable_prefix();
-  prefix->mutable_elem()->Add()->set_name("measurement1");
 
   /* Fill Update RepeatedPtrField in Notification message
    * Update field contains only data elements that have changed values. */
