@@ -27,9 +27,15 @@ inline string gnmi_to_xpath(const Path& path)
   if (path.elem_size() <= 0)
     return str;
 
+  /* pipeline-gnmi collector puts YANG namespace in origin field */
+  if (!path.origin().empty())
+    str += path.origin() + ":";
+  else // telegraf collector puts namespace in path element
+    str += "/";
+
   //iterate over the list of PathElem of a gNMI path
   for (auto &node : path.elem()) {
-    str += "/" + node.name();
+    str += node.name();
     for (auto key : node.key()) //0 or 1 iteration
       str += "[" + key.first + "=\"" + key.second + "\"]";
   }
