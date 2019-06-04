@@ -16,5 +16,7 @@ cd grpc && git submodule update --init
 cd third_party/protobuf
 ./autogen.sh && ./configure && make install
 
+ldconfig
+
 #install grpc
 cd ../.. && make && make install
