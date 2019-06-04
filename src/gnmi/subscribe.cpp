@@ -36,6 +36,11 @@ GNMIService::BuildSubscribeNotification(const SubscriptionList& request,
       BOOST_LOG_TRIVIAL(debug) << "JSON IETF";
       break;
 
+    case gnmi::PROTO:
+      BOOST_LOG_TRIVIAL(error) << "PROTO encoding will soon be supported";
+      return Status(StatusCode::UNIMPLEMENTED, Encoding_Name(request.encoding()));
+      break;
+
     default:
       BOOST_LOG_TRIVIAL(warning) << "Unsupported Encoding "
                                  << Encoding_Name(request.encoding());
@@ -70,8 +75,11 @@ GNMIService::BuildSubscribeNotification(const SubscriptionList& request,
     // Fetch all found counters value for a requested path
     status = BuildUpdate(updateList, sub.path(), gnmi_to_xpath(sub.path()),
                          request.encoding());
-    if (!status.ok())
+    if (!status.ok()) {
+      BOOST_LOG_TRIVIAL(error) << "Fail building update for "
+                               << gnmi_to_xpath(sub.path());
       return status;
+    }
   }
 
   notification->set_atomic(false);
