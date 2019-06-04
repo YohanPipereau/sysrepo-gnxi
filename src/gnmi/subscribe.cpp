@@ -7,7 +7,7 @@
 
 #include <grpc/grpc.h>
 
-#include "gnmi.h"
+#include "subscribe.h"
 #include <utils/utils.h>
 #include <utils/log.h>
 
@@ -16,8 +16,10 @@ using namespace chrono;
 using google::protobuf::RepeatedPtrField;
 using sysrepo::sysrepo_exception;
 
+namespace impl {
+
 Status
-GNMIService::BuildSubsUpdate(RepeatedPtrField<Update>* updateList,
+Subscribe::BuildSubsUpdate(RepeatedPtrField<Update>* updateList,
                             const Path &path, string fullpath,
                             gnmi::Encoding encoding)
 {
@@ -69,7 +71,7 @@ GNMIService::BuildSubsUpdate(RepeatedPtrField<Update>* updateList,
  * @param request the SubscriptionList from SubscribeRequest to answer to.
  */
 Status
-GNMIService::BuildSubscribeNotification(Notification *notification,
+Subscribe::BuildSubscribeNotification(Notification *notification,
                                         const SubscriptionList& request)
 {
   RepeatedPtrField<Update>* updateList = notification->mutable_update();
@@ -136,7 +138,7 @@ GNMIService::BuildSubscribeNotification(Notification *notification,
  * Handles SubscribeRequest messages with STREAM subscription mode by
  * periodically sending updates to the client.
  */
-Status GNMIService::handleStream(
+Status Subscribe::handleStream(
     ServerContext* context, SubscribeRequest request,
     ServerReaderWriter<SubscribeResponse, SubscribeRequest>* stream)
 {
@@ -232,7 +234,7 @@ Status GNMIService::handleStream(
  * Handles SubscribeRequest messages with ONCE subscription mode by updating
  * all the Subscriptions once, sending a SYNC message, then closing the RPC.
  */
-Status GNMIService::handleOnce(ServerContext* context, SubscribeRequest request,
+Status Subscribe::handleOnce(ServerContext* context, SubscribeRequest request,
     ServerReaderWriter<SubscribeResponse, SubscribeRequest>* stream)
 {
   Status status;
@@ -262,7 +264,7 @@ Status GNMIService::handleOnce(ServerContext* context, SubscribeRequest request,
  * Handles SubscribeRequest messages with POLL subscription mode by updating
  * all the Subscriptions each time a Poll request is received.
  */
-Status GNMIService::handlePoll(ServerContext* context, SubscribeRequest request,
+Status Subscribe::handlePoll(ServerContext* context, SubscribeRequest request,
     ServerReaderWriter<SubscribeResponse, SubscribeRequest>* stream)
 {
   SubscribeRequest subscription = request;
@@ -303,7 +305,7 @@ Status GNMIService::handlePoll(ServerContext* context, SubscribeRequest request,
  * If it does not have the "subscribe" field set, the RPC MUST be cancelled.
  * Ref: 3.5.1.1
  */
-Status GNMIService::Subscribe(ServerContext* context,
+Status Subscribe::run(ServerContext* context,
                  ServerReaderWriter<SubscribeResponse, SubscribeRequest>* stream)
 {
   SubscribeRequest request;
@@ -336,3 +338,4 @@ Status GNMIService::Subscribe(ServerContext* context,
   return Status::OK;
 }
 
+}

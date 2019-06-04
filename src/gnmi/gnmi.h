@@ -46,29 +46,6 @@ class GNMIService final : public gNMI::Service
     Status Subscribe(ServerContext* context,
         ServerReaderWriter<SubscribeResponse, SubscribeRequest>* stream);
 
-  private: /* Set helpers */
-    StatusCode handleUpdate(Update in, UpdateResult *out, string prefix);
-
-  private: /* Get helpers */
-    Status BuildGetNotification(Notification *notification, const Path *prefix,
-                                const Path &path, gnmi::Encoding encoding);
-    Status BuildGetUpdate(RepeatedPtrField<Update>* updateList,
-                          const Path &path, string fullpath,
-                          gnmi::Encoding encoding);
-
-  private: /* Subscribe helper */
-    Status BuildSubsUpdate(RepeatedPtrField<Update>* updateList,
-                           const Path &path, string fullpath,
-                           gnmi::Encoding encoding);
-    Status BuildSubscribeNotification(Notification *notification,
-                                      const SubscriptionList& request);
-    Status handleStream(ServerContext* context, SubscribeRequest request,
-              ServerReaderWriter<SubscribeResponse, SubscribeRequest>* stream);
-    Status handleOnce(ServerContext* context, SubscribeRequest request,
-              ServerReaderWriter<SubscribeResponse, SubscribeRequest>* stream);
-    Status handlePoll(ServerContext* context, SubscribeRequest request,
-              ServerReaderWriter<SubscribeResponse, SubscribeRequest>* stream);
-
   private:
     sysrepo::S_Connection sr_con; //sysrepo connection
     sysrepo::S_Session sr_sess; //sysrepo session

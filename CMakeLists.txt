@@ -45,6 +45,7 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS 1)
 set(GNXI_SRC src/main.cpp
              src/security/authentication.cpp
              src/utils/log.cpp
+             src/gnmi/gnmi.cpp
              src/gnmi/capabilities.cpp
              src/gnmi/get.cpp
              src/gnmi/set.cpp

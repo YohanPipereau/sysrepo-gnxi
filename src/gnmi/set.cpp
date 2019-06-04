@@ -1,6 +1,6 @@
 /*  vim:set softtabstop=2 shiftwidth=2 tabstop=2 expandtab: */
 
-#include "gnmi.h"
+#include "set.h"
 #include "encode/encode.h"
 #include <utils/utils.h>
 #include <utils/log.h>
@@ -8,7 +8,9 @@
 using namespace sysrepo;
 using namespace std;
 
-StatusCode GNMIService::handleUpdate(Update in, UpdateResult *out, string prefix)
+namespace impl {
+
+StatusCode Set::handleUpdate(Update in, UpdateResult *out, string prefix)
 {
   shared_ptr<Val> sval;
   //Parse request
@@ -89,10 +91,8 @@ StatusCode GNMIService::handleUpdate(Update in, UpdateResult *out, string prefix
   return StatusCode::OK;
 }
 
-Status GNMIService::Set(ServerContext *context, const SetRequest* request,
-                       SetResponse* response)
+Status Set::run(const SetRequest* request, SetResponse* response)
 {
-  (void)context;
   std::string prefix = "";
 
   if (request->extension_size() > 0) {
@@ -173,4 +173,6 @@ Status GNMIService::Set(ServerContext *context, const SetRequest* request,
   }
 
   return Status::OK;
+}
+
 }
