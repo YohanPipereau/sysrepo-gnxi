@@ -13,7 +13,7 @@ Supported RPCs:
 
 Supported encoding:
 
-* [x] No encoding/gNMI native encoding (use `PROTO`)
+* [ ] No encoding/gNMI native encoding (use `PROTO`)
 * [X] JSON IETF encoding  (use `JSON_IETF`)
 * [X] JSON encoding (if you ask for `JSON` you will have `JSON_IETF`)
 * [ ] ~~Protobuf encoding~~
@@ -130,6 +130,8 @@ gnmi -addr localhost:50051 -cafile ca.crt -username cisco -password cisco get /i
 
 # Clients
 
+Here is a list of gNMI clients, not all of them work because they don't all respect the specification.
+
 gnmi clients for Capabilities, Set, Get:
 ========================================
 
@@ -150,6 +152,11 @@ Documentation and examples for:
 * [gnmi](https://github.com/aristanetworks/goarista/tree/master/cmd/gnmi) is provided [here](doc/gnmi_cli.md)
 * [Telegraf-gnmi](https://github.com/influxdata/telegraf) is provided [here](doc/telegraf-gnmi.md)
 * [pipeline-gnmi](https://github.com/influxdata/telegraf) is provided [here](doc/pipeline-gnmi.md)
+
+gNMI clients which should work:
+
+* [gnmi](https://github.com/aristanetworks/goarista/tree/master/cmd/gnmi)
+* [Telegraf-gnmi](https://github.com/influxdata/telegraf)
 
 
 # FAQ
@@ -214,8 +221,7 @@ No encoding means your value can be encoded in one of the following type i.e. st
 This types are all supported types for a YANG leaf node.
 
 If you are using "No Encoding", or "Native Encoding", you must know that it is not part of gNMI specification.
-I took some liberty and if you use `PROTO` field of gnmi encoding enumeration.
-Because it encode yang leaves, the xpath, you will receive are all xpath for YANG leaves.
+If you use this, you would receive a list of xpath and their value. (Though it is not supported for now).
 
 It should be used if:
 
