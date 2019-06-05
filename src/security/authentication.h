@@ -27,17 +27,6 @@ class UserPassAuthenticator final : public grpc::AuthMetadataProcessor {
 };
 
 
-class TLSProcessor final : public grpc::AuthMetadataProcessor {
-  public:
-    TLSProcessor() {}
-    ~TLSProcessor() {}
-
-    Status Process(const InputMetadata& auth_metadata,
-                   grpc::AuthContext* context,
-                   OutputMetadata* consumed_auth_metadata,
-                   OutputMetadata* response_metadata) override;
-};
-
 /* Supported Authentication methods */
 enum AuthType {
   INSECURE,       // No Username/password, no encryption
