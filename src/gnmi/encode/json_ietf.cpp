@@ -154,11 +154,11 @@ vector<JsonData> Encode::json_read(string xpath)
      * Pass a pair containing key name and key value.
      * keys are always first element of children in sysrepo trees
      */
-    key_name = string(sr_tree->first_child()->name());
-    key_value = fastWriter.write(val[key_name]);
-    BOOST_LOG_TRIVIAL(debug) << key_name << ":" << key_value;
-    tmp.key.first = key_name;
-    tmp.key.second = key_value;
+    if (sr_tree->type() == SR_LIST_T) {
+      tmp.key.first = string(sr_tree->first_child()->name());
+      tmp.key.second = val[tmp.key.first].asString();
+      BOOST_LOG_TRIVIAL(debug) << tmp.key.first << ":" << tmp.key.second;
+    }
 
     /* Print Pretty JSON message */
     BOOST_LOG_TRIVIAL(debug) << styledwriter.write(val);
