@@ -20,12 +20,8 @@ Get::BuildGetUpdate(RepeatedPtrField<Update>* updateList,
 {
   Update *update;
   TypedValue *gnmival;
+  vector<string> json_vec;
   string *json_ietf;
-
-  /* Create Update message */
-  update = updateList->Add();
-  update->mutable_path()->CopyFrom(path);
-  gnmival = update->mutable_val();
 
   /* Refresh configuration data from current session */
   sr_sess->refresh();
@@ -34,10 +30,9 @@ Get::BuildGetUpdate(RepeatedPtrField<Update>* updateList,
   switch (encoding) {
     case gnmi::JSON:
     case gnmi::JSON_IETF:
-      json_ietf = gnmival->mutable_json_ietf_val();
       /* Get sysrepo subtree data corresponding to XPATH */
       try {
-        *json_ietf = encodef->getEncoding(EncodeFactory::Encoding::JSON_IETF)->read(fullpath);
+        json_vec = encodef->getEncoding(EncodeFactory::Encoding::JSON_IETF)->read(fullpath);
       } catch (invalid_argument &exc) {
         return Status(StatusCode::NOT_FOUND, exc.what());
       } catch (sysrepo_exception &exc) {
@@ -45,6 +40,17 @@ Get::BuildGetUpdate(RepeatedPtrField<Update>* updateList,
                                  << exc.what();
         return Status(StatusCode::INVALID_ARGUMENT, exc.what());
       }
+
+      /* Create new update message for every tree collected */
+      for (auto it : json_vec) {
+        update = updateList->Add();
+        update->mutable_path()->CopyFrom(path);
+        gnmival = update->mutable_val();
+
+        json_ietf = gnmival->mutable_json_ietf_val();
+        *json_ietf = it;
+      }
+
       break;
 
     default:

@@ -34,7 +34,7 @@ class Encode {
     Encode(std::shared_ptr<sysrepo::Session> sess) : sr_sess(sess) {}
 
     virtual void update(string data) = 0;
-    virtual string read(string xpath) = 0;
+    virtual std::vector<string> read(string xpath) = 0;
 
   protected:
     void storeTree(libyang::S_Data_Node node);
@@ -51,7 +51,7 @@ class JsonEncode : public Encode {
                shared_ptr<sysrepo::Session> sess) : Encode(sess), ctx(lctx) {}
 
     void update(string data) override;
-    string read(string xpath) override;
+    std::vector<string> read(string xpath) override;
 
   private:
     std::shared_ptr<libyang::Context> ctx;

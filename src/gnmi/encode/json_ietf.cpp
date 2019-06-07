@@ -128,9 +128,11 @@ static Json::Value json_tree(sysrepo::S_Tree tree)
 }
 
 /* Get sysrepo subtree data corresponding to XPATH */
-string JsonEncode::read(string xpath)
+vector<string> JsonEncode::read(string xpath)
 {
+  sysrepo::S_Trees sr_trees;
   sysrepo::S_Tree sr_tree;
+  vector<string> json_vec;
   Json::StyledWriter styledwriter; //pretty JSON
   Json::FastWriter fastWriter; //unreadable JSON
   string prettyJson;
@@ -145,18 +147,24 @@ string JsonEncode::read(string xpath)
 
   BOOST_LOG_TRIVIAL(debug) << "read and encode in json data for " << xpath;
   /* XPATH identify a single instance */
-  sr_tree = sr_sess->get_subtree(xpath.c_str());
-    if (sr_tree == nullptr)
+  sr_trees = sr_sess->get_subtrees(xpath.c_str());
+    if (sr_trees == nullptr)
       throw invalid_argument("xpath not found");
 
   //// Print in sysrepo tree format
   //BOOST_LOG_TRIVIAL(debug) << "\n" << sr_tree->to_string(10);
 
-  val = json_tree(sr_tree);
+  for (size_t i = 0; i < sr_trees->tree_cnt(); i++) {
+    sr_tree = sr_trees->tree(i);
+    val = json_tree(sr_tree);
 
-  /* Print Pretty JSON message */
-  prettyJson = styledwriter.write(val);
-  BOOST_LOG_TRIVIAL(debug) << prettyJson;
+    /* Print Pretty JSON message */
+    prettyJson = styledwriter.write(val);
+    BOOST_LOG_TRIVIAL(debug) << prettyJson;
 
-  return fastWriter.write(val); /* return Fast unreadable JSON message */
+    /* Fast unreadable JSON message */
+    json_vec.push_back(fastWriter.write(val));
+  }
+
+  return json_vec;
 }
