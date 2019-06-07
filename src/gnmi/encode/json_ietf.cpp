@@ -136,11 +136,12 @@ string JsonEncode::read(string xpath)
   string prettyJson;
   Json::Value val;
 
-  if (xpath.back() == '.' || xpath.back() == '*') {
-    /* XPATH identify multiple instances */
-    throw invalid_argument("get xpaths must not end with '.' or '*'");
-    // could be retrieved with get_subtrees(xpath.c_str())
-  }
+  // TODO why?
+  //if (xpath.back() == '.' || xpath.back() == '*') {
+  //  /* XPATH identify multiple instances */
+  //  throw invalid_argument("get xpaths must not end with '.' or '*'");
+  //  // could be retrieved with get_subtrees(xpath.c_str())
+  //}
 
   BOOST_LOG_TRIVIAL(debug) << "read and encode in json data for " << xpath;
   /* XPATH identify a single instance */

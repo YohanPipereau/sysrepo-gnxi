@@ -41,7 +41,7 @@ Get::BuildGetUpdate(RepeatedPtrField<Update>* updateList,
       } catch (invalid_argument &exc) {
         return Status(StatusCode::NOT_FOUND, exc.what());
       } catch (sysrepo_exception &exc) {
-        BOOST_LOG_TRIVIAL(error) << "Fail getting items from sysrepo "
+        BOOST_LOG_TRIVIAL(error) << "Fail getting items from sysrepo: "
                                  << exc.what();
         return Status(StatusCode::INVALID_ARGUMENT, exc.what());
       }
@@ -156,7 +156,7 @@ Status Get::run(const GetRequest* req, GetResponse* response)
       status = BuildGetNotification(notification, nullptr, path, req->encoding());
 
     if (!status.ok()) {
-      BOOST_LOG_TRIVIAL(error) << "Fail building get notification "
+      BOOST_LOG_TRIVIAL(error) << "Fail building get notification: "
                                << status.error_message();
       return status;
     }
