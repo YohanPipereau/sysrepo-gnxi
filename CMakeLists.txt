@@ -51,7 +51,7 @@ set(GNXI_SRC src/main.cpp
              src/gnmi/set.cpp
              src/gnmi/subscribe.cpp
              src/gnmi/encode/encode.cpp
-             src/gnmi/encode/encode_factory.cpp
+             src/gnmi/encode/load_models.cpp
              src/gnmi/encode/runtime.cpp
              src/gnmi/encode/json_ietf.cpp
 )

@@ -19,7 +19,7 @@ namespace impl {
 
 class Subscribe {
   public:
-    Subscribe(sysrepo::S_Session sess, std::shared_ptr<EncodeFactory> encode)
+    Subscribe(sysrepo::S_Session sess, std::shared_ptr<Encode> encode)
       : sr_sess(sess), encodef(encode) {}
     ~Subscribe() {}
 
@@ -41,7 +41,7 @@ class Subscribe {
 
   private:
     sysrepo::S_Session sr_sess; //sysrepo session
-    std::shared_ptr<EncodeFactory> encodef; //support for json ietf encoding
+    std::shared_ptr<Encode> encodef; //support for json ietf encoding
 };
 
 }

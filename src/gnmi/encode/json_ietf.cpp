@@ -22,7 +22,7 @@ using namespace libyang;
  * Parse a message encoded in JSON IETF and set fields in sysrepo.
  * @param data Input data encoded in JSON
  */
-void JsonEncode::update(string data)
+void Encode::json_update(string data)
 {
   S_Data_Node node;
 
@@ -128,42 +128,45 @@ static Json::Value json_tree(sysrepo::S_Tree tree)
 }
 
 /* Get sysrepo subtree data corresponding to XPATH */
-vector<string> JsonEncode::read(string xpath)
+vector<JsonData> Encode::json_read(string xpath)
 {
   sysrepo::S_Trees sr_trees;
   sysrepo::S_Tree sr_tree;
-  vector<string> json_vec;
+  vector<JsonData> json_vec;
   Json::StyledWriter styledwriter; //pretty JSON
   Json::FastWriter fastWriter; //unreadable JSON
-  string prettyJson;
   Json::Value val;
-
-  // TODO why?
-  //if (xpath.back() == '.' || xpath.back() == '*') {
-  //  /* XPATH identify multiple instances */
-  //  throw invalid_argument("get xpaths must not end with '.' or '*'");
-  //  // could be retrieved with get_subtrees(xpath.c_str())
-  //}
+  JsonData tmp;
+  string key_name, key_value;
 
   BOOST_LOG_TRIVIAL(debug) << "read and encode in json data for " << xpath;
-  /* XPATH identify a single instance */
+
+  /* Get multiple subtree for YANG lists or one for other YANG types */
   sr_trees = sr_sess->get_subtrees(xpath.c_str());
     if (sr_trees == nullptr)
       throw invalid_argument("xpath not found");
-
-  //// Print in sysrepo tree format
-  //BOOST_LOG_TRIVIAL(debug) << "\n" << sr_tree->to_string(10);
 
   for (size_t i = 0; i < sr_trees->tree_cnt(); i++) {
     sr_tree = sr_trees->tree(i);
     val = json_tree(sr_tree);
 
+    /*
+     * Pass a pair containing key name and key value.
+     * keys are always first element of children in sysrepo trees
+     */
+    key_name = string(sr_tree->first_child()->name());
+    key_value = fastWriter.write(val[key_name]);
+    BOOST_LOG_TRIVIAL(debug) << key_name << ":" << key_value;
+    tmp.key.first = key_name;
+    tmp.key.second = key_value;
+
     /* Print Pretty JSON message */
-    prettyJson = styledwriter.write(val);
-    BOOST_LOG_TRIVIAL(debug) << prettyJson;
+    BOOST_LOG_TRIVIAL(debug) << styledwriter.write(val);
 
     /* Fast unreadable JSON message */
-    json_vec.push_back(fastWriter.write(val));
+    tmp.data = fastWriter.write(val);
+
+    json_vec.push_back(tmp);
   }
 
   return json_vec;

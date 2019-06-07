@@ -20,7 +20,7 @@ Get::BuildGetUpdate(RepeatedPtrField<Update>* updateList,
 {
   Update *update;
   TypedValue *gnmival;
-  vector<string> json_vec;
+  vector<JsonData> json_vec;
   string *json_ietf;
 
   /* Refresh configuration data from current session */
@@ -32,7 +32,7 @@ Get::BuildGetUpdate(RepeatedPtrField<Update>* updateList,
     case gnmi::JSON_IETF:
       /* Get sysrepo subtree data corresponding to XPATH */
       try {
-        json_vec = encodef->getEncoding(EncodeFactory::Encoding::JSON_IETF)->read(fullpath);
+        json_vec = encodef->json_read(fullpath);
       } catch (invalid_argument &exc) {
         return Status(StatusCode::NOT_FOUND, exc.what());
       } catch (sysrepo_exception &exc) {
@@ -48,7 +48,7 @@ Get::BuildGetUpdate(RepeatedPtrField<Update>* updateList,
         gnmival = update->mutable_val();
 
         json_ietf = gnmival->mutable_json_ietf_val();
-        *json_ietf = it;
+        *json_ietf = it.data;
       }
 
       break;

@@ -17,7 +17,7 @@ namespace impl {
 
 class Get {
   public:
-    Get(sysrepo::S_Session sess, std::shared_ptr<EncodeFactory> encode)
+    Get(sysrepo::S_Session sess, std::shared_ptr<Encode> encode)
       : sr_sess(sess), encodef(encode) {}
     ~Get() {}
 
@@ -32,7 +32,7 @@ class Get {
 
   private:
     sysrepo::S_Session sr_sess; //sysrepo session
-    shared_ptr<EncodeFactory> encodef; //support for json ietf encoding
+    shared_ptr<Encode> encodef; //support for json ietf encoding
 };
 
 }

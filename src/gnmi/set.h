@@ -16,7 +16,7 @@ namespace impl {
 
 class Set {
   public:
-    Set(sysrepo::S_Session sess, std::shared_ptr<EncodeFactory> encode)
+    Set(sysrepo::S_Session sess, std::shared_ptr<Encode> encode)
       : sr_sess(sess), encodef(encode) {}
     ~Set() {}
 
@@ -27,7 +27,7 @@ class Set {
 
   private:
     sysrepo::S_Session sr_sess; //sysrepo session
-    shared_ptr<EncodeFactory> encodef; //support for json ietf encoding
+    shared_ptr<Encode> encodef; //support for json ietf encoding
 };
 
 }

@@ -26,7 +26,7 @@ class GNMIService final : public gNMI::Service
       try {
         sr_con = make_shared<Connection>(app.c_str(), SR_CONN_DAEMON_REQUIRED);
         sr_sess = make_shared<Session>(sr_con);
-        encodef = make_shared<EncodeFactory>(sr_sess);
+        encodef = make_shared<Encode>(sr_sess);
       } catch (sysrepo::sysrepo_exception &exc) {
         std::cerr << "Connection to sysrepo failed " << exc.what() << std::endl;
         exit(1);
@@ -49,7 +49,7 @@ class GNMIService final : public gNMI::Service
   private:
     sysrepo::S_Connection sr_con; //sysrepo connection
     sysrepo::S_Session sr_sess; //sysrepo session
-    shared_ptr<EncodeFactory> encodef; //support for json ietf encoding
+    shared_ptr<Encode> encodef; //support for json ietf encoding
 };
 
 #endif //_GNMI_SERVER_H

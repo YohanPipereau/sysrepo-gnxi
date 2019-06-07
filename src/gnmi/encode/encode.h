@@ -10,6 +10,7 @@
 
 using std::shared_ptr;
 using std::string;
+using std::vector;
 
 /*
  * Encode directory aims at providing a CREATE-UPDATE-READ wrapper on top of
@@ -24,52 +25,35 @@ using std::string;
  * Use sr_delete_item to suppress subtree from a xpath directly.
  */
 
-/*
- * Abstract Top class for Encodings
- * All encodings inherits from this class which also provide helpers
- * specific
- */
-class Encode {
-  public:
-    Encode(std::shared_ptr<sysrepo::Session> sess) : sr_sess(sess) {}
-
-    virtual void update(string data) = 0;
-    virtual std::vector<string> read(string xpath) = 0;
-
-  protected:
-    void storeTree(libyang::S_Data_Node node);
-    void storeLeaf(libyang::S_Data_Node_Leaf_List node);
-
-  protected:
-    std::shared_ptr<sysrepo::Session> sr_sess;
-};
-
-/* Class for JSON IETF encoding */
-class JsonEncode : public Encode {
-  public:
-    JsonEncode(shared_ptr<libyang::Context> lctx,
-               shared_ptr<sysrepo::Session> sess) : Encode(sess), ctx(lctx) {}
-
-    void update(string data) override;
-    std::vector<string> read(string xpath) override;
-
-  private:
-    std::shared_ptr<libyang::Context> ctx;
+struct JsonData {
+  JsonData() {}
+  /* Field containing a YANG list key [name=value] */
+  std::pair<string, string> key;
+  /* Field containing the JSON tree under the designed YANG element */
+  string data;
 };
 
 /*
  * Factory to instantiate encodings
  * Encoding can be {JSON, Bytes, Proto, ASCII, JSON_IETF}
  */
-class EncodeFactory {
+class Encode {
   public:
-    EncodeFactory(std::shared_ptr<sysrepo::Session> sr_sess);
-    ~EncodeFactory();
+    Encode(std::shared_ptr<sysrepo::Session> sr_sess);
+    ~Encode();
+
     /* Supported Encodings */
-    enum Encoding {
+    enum Supported {
       JSON_IETF = 0,
     };
-    std::unique_ptr<Encode> getEncoding(EncodeFactory::Encoding encoding);
+
+    /* JSON encoding */
+    void json_update(string data);
+    vector<JsonData> json_read(string xpath);
+
+  private:
+    void storeTree(libyang::S_Data_Node node);
+    void storeLeaf(libyang::S_Data_Node_Leaf_List node);
 
   private:
     std::shared_ptr<libyang::Context> ctx;

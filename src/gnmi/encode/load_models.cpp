@@ -14,7 +14,7 @@ using namespace libyang;
 /*
  * @brief Fetch all modules implemented in sysrepo datastore
  */
-EncodeFactory::EncodeFactory(shared_ptr<sysrepo::Session> sess)
+Encode::Encode(shared_ptr<sysrepo::Session> sess)
   : sr_sess(sess)
 {
   shared_ptr<sysrepo::Yang_Schemas> schemas; //sysrepo YANG schemas supported
@@ -103,19 +103,7 @@ EncodeFactory::EncodeFactory(shared_ptr<sysrepo::Session> sess)
   sub->feature_enable_subscribe(scb);
 }
 
-EncodeFactory::~EncodeFactory()
+Encode::~Encode()
 {
   BOOST_LOG_TRIVIAL(info) << "Disconnect sysrepo session and Libyang context";
-}
-
-unique_ptr<Encode> EncodeFactory::getEncoding(EncodeFactory::Encoding encoding)
-{
-  switch (encoding) {
-    case EncodeFactory::Encoding::JSON_IETF:
-      return unique_ptr<Encode>(new JsonEncode(ctx, sr_sess));
-
-    default:
-      BOOST_LOG_TRIVIAL(error) << "Unknown encoding";
-      return nullptr;
-  }
 }
