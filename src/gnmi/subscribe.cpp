@@ -27,6 +27,8 @@ Subscribe::BuildSubsUpdate(RepeatedPtrField<Update>* updateList,
   TypedValue *gnmival;
   vector<JsonData> json_vec;
   string *json_ietf;
+  int idx;
+  google::protobuf::Map<string, string> *key;
 
   /* Create Update message */
   update = updateList->Add();
@@ -55,6 +57,14 @@ Subscribe::BuildSubsUpdate(RepeatedPtrField<Update>* updateList,
       for (auto it : json_vec) {
         update = updateList->Add();
         update->mutable_path()->CopyFrom(path);
+
+        if (!it.key.first.empty()) {
+          BOOST_LOG_TRIVIAL(debug) << "putting list entries key in gNMI path";
+          idx = update->mutable_path()->elem_size() - 1;
+          key = update->mutable_path()->mutable_elem(idx)->mutable_key();
+          (*key)[it.key.first] = it.key.second;
+        }
+
         gnmival = update->mutable_val();
 
         json_ietf = gnmival->mutable_json_ietf_val();
