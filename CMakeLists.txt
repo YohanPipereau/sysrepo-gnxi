@@ -85,3 +85,7 @@ target_link_libraries(gnxi_server gnmi
 install(TARGETS gnxi_server
         RUNTIME DESTINATION bin
         DESTINATION ${CMAKE_INSTALL_BINDIR})
+
+SET(CPACK_GENERATOR "DEB")
+SET(CPACK_DEBIAN_PACKAGE_MAINTAINER "ypiperea@cisco.com")
+INCLUDE(CPack)
