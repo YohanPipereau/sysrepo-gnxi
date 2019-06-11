@@ -23,17 +23,21 @@ inline uint64_t get_time_nanosec()
 inline string gnmi_to_xpath(const Path& path)
 {
   string str = "";
+  bool first = true;
 
   if (path.elem_size() <= 0)
     return str;
 
-  /* pipeline-gnmi collector puts YANG namespace in origin field */
-  if (!path.origin().empty())
-    str += path.origin() + ":";
-
   //iterate over the list of PathElem of a gNMI path
   for (auto &node : path.elem()) {
     str += "/";
+    if (first) {
+      first = false;
+      /* YANG namespace is specified in origin field */
+      if (!path.origin().empty())
+        str += path.origin() + ":";
+    }
+
     str += node.name();
     for (auto key : node.key()) //0 or 1 iteration
       str += "[" + key.first + "=\"" + key.second + "\"]";
