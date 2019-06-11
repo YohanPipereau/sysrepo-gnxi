@@ -2,6 +2,10 @@ cmake_minimum_required(VERSION 3.0)
 
 project(sysrepo-gnxi)
 
+## AVAILABLE OPTIONS FOR CMAKE:
+##  DYNAMIC_LINK_GRPC = OFF     , link grpc and protobuf dynamically
+##  CPACK_GENERATOR = [DEB,RPM] , package for deb/rpm
+
 set(SYSREPO-GNXI_MAJOR_VERSION 0)
 set(SYSREPO-GNXI_MINOR_VERSION 1)
 set(SYSREPO-GNXI_MICRO_VERSION 0)
@@ -17,13 +21,12 @@ set(CMAKE_CXX_STANDARD 11)
 # Cmake find modules
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_LIST_DIR}/CmakeModules")
 
-# dependencies - libyang
 find_package(PkgConfig) #official cmake module
-pkg_check_modules(JSONCPP REQUIRED jsoncpp) #official pkgconfig jsoncpp
+find_package(Boost REQUIRED log system) #just boost-log and boost-system libraries
 
-find_package(Boost REQUIRED log system)
-pkg_check_modules(LIBYANG REQUIRED libyang-cpp)
-pkg_check_modules(SYSREPO REQUIRED libSysrepo-cpp) #PkgConfig cmake module maccro
+pkg_check_modules(JSONCPP REQUIRED jsoncpp) #official pkgconfig jsoncpp
+pkg_check_modules(LIBYANG REQUIRED libyang-cpp=>1.0.26)
+pkg_check_modules(SYSREPO REQUIRED libSysrepo-cpp=>0.7.7) #PkgConfig cmake module maccro
 
 
 # DEPENDENCIES & COMPILATION OF GNXI PROTO

@@ -41,29 +41,25 @@ sysrepo-gnxi
 |   +-- ...
 ```
 
-libyang is a dependency of _sysrepo-gnxi_ but it should be installed with sysrepo anyway. Though, make sure you have installed libyang with C++ library and header files.
+1. If `libyang (>=1.0-r3)` is packaged on your distrib use it, else run `scripts/install-libyang.sh` to install the required version of libyang. _you can use an older version and apply commit bf1aa13ba2dfb7b5938ed2345a67de316fc34917 to it_
+2. You can run `scripts/install-sysrepo.sh` to install sysrepo. Check [here](https://github.com/sysrepo/sysrepo/blob/master/INSTALL.md) for installation instructions of sysrepo.
 
-Check [here](https://github.com/sysrepo/sysrepo/blob/master/INSTALL.md) for installation instructions of sysrepo.
+By default, grpc and protobuf are linked statically. But you can build it to have them linked dynamically.
 
 # Install
 
-1. If `libyang (>=1.0-r3)` is packaged on your distrib use it, else run `scripts/install-libyang.sh` to install the required version of libyang. _you can use an older version and apply commit bf1aa13ba2dfb7b5938ed2345a67de316fc34917 to it_
-2. You can run `scripts/install-sysrepo.sh` to install sysrepo
-3. If `grpc++ (>=1.18.0)` is packaged on your distrib use it, else run `scripts/install-grpc.sh`
+## Install from package:
 
-Install from package:
-=====================
+Install deb and rpm from https://github.com/YohanPipereau/sysrepo-gnxi/releases
 
-There is no repository hosting this package for the moment, but it is recommended to build the package yourself (See [Build packages](#build-packages)) and install it with `dpkg` or `rpm`.
-
-Install from source:
-====================
+## Install from source:
 
 ```
 mkdir -p build
 cd build
-cmake ..
+cmake -D DYNAMIC_LINK_GRPC=OFF .. # GRPC can be linked dynamically if other applications are using it
 make
+make install
 ```
 
 # Build packages
@@ -206,24 +202,24 @@ Ex: Which field is the key for interface list ?
 
 ```
 {
-   "interface" : [
-      {
-         "admin-status" : "down",
-         "name" : "GigabitEthernet0/8/0",
-         "oper-status" : "down",
-         "phys-address" : "08:00:27:60:b7:12",
-         "speed" : "1000000",
-         "type" : "iana-if-type:ethernetCsmacd"
-      },
-      {
-         "admin-status" : "down",
-         "name" : "local0",
-         "oper-status" : "down",
-         "phys-address" : "00:00:00:00:00:00",
-         "speed" : "0",
-         "type" : "iana-if-type:ethernetCsmacd"
-      }
-   ]
+"interface" : [
+  {
+     "admin-status" : "down",
+     "name" : "GigabitEthernet0/8/0",
+     "oper-status" : "down",
+     "phys-address" : "08:00:27:60:b7:12",
+     "speed" : "1000000",
+     "type" : "iana-if-type:ethernetCsmacd"
+  },
+  {
+     "admin-status" : "down",
+     "name" : "local0",
+     "oper-status" : "down",
+     "phys-address" : "00:00:00:00:00:00",
+     "speed" : "0",
+     "type" : "iana-if-type:ethernetCsmacd"
+  }
+]
 }
 ```
 
@@ -257,3 +253,7 @@ It should be used if:
 ## Why do I need grpc 1.18.0 ?
 
 This server compiles with grpc 1.12.0 but as reported here https://github.com/grpc/grpc/pull/17500 , if we want to use TLS for authentication and no root certificate is specified on server side, there will be no checking of client certificate . Thus, anyone could access the server without authenticating.
+
+## Why linking statically grpc++ and protobuf by default ?
+
+Because grpc++ is not packaged on Centos and Ubuntu/Debian, and it takes a long time to compile it.

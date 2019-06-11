@@ -35,5 +35,33 @@ PROTOBUF_GENERATE_GRPC_CPP(gnmi_ext_grpc_srcs gnmi_ext_grpc_hdrs ${gnmi_ext_prot
 #Create a new library named gnmi
 add_library(gnmi ${gnmi_grpc_srcs} ${gnmi_ext_grpc_srcs} ${gnmi_proto_srcs} ${gnmi_ext_proto_srcs})
 
-#Link our new gnmi library with grpc and protobuf libraries
-target_link_libraries(gnmi ${grpc++_LIBRARIES} ${PROTOBUF_LIBRARIES})
+set(DYNAMIC_LINK_GRPC OFF)
+
+if(DYNAMIC_LINK_GRPC)
+    message(STATUS "DYNAMICALLY LINK gRPC")
+    #Link our new gnmi library with grpc and protobuf libraries
+    target_link_libraries(gnmi ${grpc++_LIBRARIES} ${PROTOBUF_LIBRARIES})
+else()
+    message(STATUS "STATICALLY LINK gRPC")
+    find_library(GRPCPP_STATIC_LIB NAMES libgrpc++.a PATHS ${grpc++_LIBRARY_DIRS})
+    if(NOT GRPCPP_STATIC_LIB)
+        message(FATAL_ERROR "static libraries for grpc++ not found")
+    endif()
+    find_library(GRPC_STATIC_LIB NAMES libgrpc.a PATHS ${grpc++_LIBRARY_DIRS})
+    if(NOT GRPC_STATIC_LIB)
+        message(FATAL_ERROR "static libraries for grpc++ not found")
+    endif()
+    find_library(PROTOBUF_STATIC_LIB NAMES libprotobuf.a PATHS ${grpc++_LIBRARY_DIRS})
+    if(NOT PROTOBUF_STATIC_LIB)
+        message(FATAL_ERROR "static libraries for protobuf not found")
+    endif()
+    pkg_check_modules(zlib REQUIRED zlib)
+    pkg_check_modules(openssl REQUIRED openssl)
+
+    #Link our new gnmi library with grpc, protobuf libraries and their dependencies
+    target_link_libraries(gnmi
+        ${GRPCPP_STATIC_LIB} ${GRPC_STATIC_LIB}
+        ${PROTOBUF_STATIC_LIB}
+        ${openssl_LIBRARIES} ${zlib_LIBRARIES}
+    )
+endif(DYNAMIC_LINK_GRPC)
