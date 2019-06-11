@@ -31,6 +31,7 @@ gnmi -addr localhost:50051 update / tmp.json
 ## Get RPC:
 
 ```
+gnmi -addr localhost:50051 get origin=ietf-interfaces /interfaces
 gnmi -addr localhost:50051 get /ietf-interfaces:interfaces/ 
 gnmi -addr localhost:50051 get /ietf-interfaces:interfaces/ /openconfig-interfaces:interfaces
 ```
