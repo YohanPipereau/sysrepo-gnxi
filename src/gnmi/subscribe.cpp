@@ -93,7 +93,7 @@ Subscribe::BuildSubsUpdate(RepeatedPtrField<Update>* updateList,
  */
 Status
 Subscribe::BuildSubscribeNotification(Notification *notification,
-                                        const SubscriptionList& request)
+                                      const SubscriptionList& request)
 {
   RepeatedPtrField<Update>* updateList = notification->mutable_update();
   Status status;
@@ -128,12 +128,8 @@ Subscribe::BuildSubscribeNotification(Notification *notification,
   /* Get time since epoch in milliseconds */
   notification->set_timestamp(get_time_nanosec());
 
-  /* TODO Notification message prefix based on SubscriptionList prefix */
-  if (request.has_prefix() && request.prefix().elem_size() > 0) {
-    BOOST_LOG_TRIVIAL(warning) << "prefix can not be used in Subscribe: "
-                               << gnmi_to_xpath(request.prefix());
-    return Status(StatusCode::UNIMPLEMENTED, "Prefix not supported");
-  }
+  if (request.has_prefix())
+    notification->mutable_prefix()->CopyFrom(request.prefix());
 
   /* Fill Update RepeatedPtrField in Notification message
    * Update field contains only data elements that have changed values. */
@@ -142,7 +138,7 @@ Subscribe::BuildSubscribeNotification(Notification *notification,
 
     // Fetch all found counters value for a requested path
     status = BuildSubsUpdate(updateList, sub.path(), gnmi_to_xpath(sub.path()),
-                         request.encoding());
+                             request.encoding());
     if (!status.ok()) {
       BOOST_LOG_TRIVIAL(error) << "Fail building update for "
                                << gnmi_to_xpath(sub.path());
