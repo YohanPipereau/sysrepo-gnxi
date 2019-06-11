@@ -45,16 +45,49 @@ libyang is a dependency of _sysrepo-gnxi_ but it should be installed with sysrep
 
 Check [here](https://github.com/sysrepo/sysrepo/blob/master/INSTALL.md) for installation instructions of sysrepo.
 
-
 # Install
 
-You can run scripts/install.sh to install the required version of libyang or use an older version and apply commit bf1aa13ba2dfb7b5938ed2345a67de316fc34917 to it.
+1. If `libyang (>=1.0-r3)` is packaged on your distrib use it, else run `scripts/install-libyang.sh` to install the required version of libyang. _you can use an older version and apply commit bf1aa13ba2dfb7b5938ed2345a67de316fc34917 to it_
+2. You can run `scripts/install-sysrepo.sh` to install sysrepo
+3. If `grpc++ (>=1.18.0)` is packaged on your distrib use it, else run `scripts/install-grpc.sh`
+
+Install from package:
+=====================
+
+There is no repository hosting this package for the moment, but it is recommended to build the package yourself (See [Build packages](#build-packages)) and install it with `dpkg` or `rpm`.
+
+Install from source:
+====================
 
 ```
 mkdir -p build
 cd build
 cmake ..
 make
+```
+
+# Build packages
+
+Packages are built with Cpack module for cmake:
+
+Build DEB package:
+==================
+
+```
+mkdir -p build
+cd build
+cmake -D CPACK_GENERATOR="DEB" ..
+make package
+```
+
+Build RPM package:
+==================
+
+```
+mkdir -p build
+cd build
+cmake -D CPACK_GENERATOR="RPM" ..
+make package
 ```
 
 # Generate PKI (Recommanded)
