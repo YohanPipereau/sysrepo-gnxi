@@ -81,3 +81,7 @@ target_link_libraries(gnxi_server gnmi
                       ${SYSREPO_LIBRARIES}
                       ${LIBYANG_LIBRARIES}
                       )
+
+install(TARGETS gnxi_server
+        RUNTIME DESTINATION bin
+        DESTINATION ${CMAKE_INSTALL_BINDIR})
