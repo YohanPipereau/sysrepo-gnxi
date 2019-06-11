@@ -70,8 +70,7 @@ make
 
 Packages are built with Cpack module for cmake:
 
-Build DEB package:
-==================
+## Build DEB package:
 
 ```
 mkdir -p build
@@ -80,8 +79,7 @@ cmake -D CPACK_GENERATOR="DEB" ..
 make package
 ```
 
-Build RPM package:
-==================
+## Build RPM package:
 
 ```
 mkdir -p build
@@ -165,15 +163,13 @@ gnmi -addr localhost:50051 -cafile ca.crt -username cisco -password cisco get /i
 
 Here is a list of gNMI clients, not all of them work because they don't all respect the specification.
 
-gnmi clients for Capabilities, Set, Get:
-========================================
+## gnmi clients for Capabilities, Set, Get:
 
 * Arista [gnmi](https://github.com/aristanetworks/goarista/tree/master/cmd/gnmi)
 * Openconfig [gnmi_cli](https://github.com/openconfig/gnmi)
 * Google [gnmi_capabilities](https://github.com/google/gnxi/tree/master/gnmi_capabilities), [gnmi_get](https://github.com/google/gnxi/tree/master/gnmi_get), [gnmi_set](https://github.com/google/gnxi/tree/master/gnmi_set)
 
-gnmi clients for Subscribe (telemetry):
-=======================================
+## gnmi clients for Subscribe (telemetry):
 
 * InfluxData [Telegraf](https://github.com/influxdata/telegraf)
 * Cisco [pipeline-gnmi](https://github.com/cisco-ie/pipeline-gnmi)
@@ -194,8 +190,7 @@ gNMI clients which should work:
 
 # FAQ
 
-Why does it use libyang rather than a JSON library?
-===================================================
+## Why does it use libyang rather than a JSON library?
 
 A JSON library would not be enough because JSON is not detailed enough and miss information required to build an XPATH (key of sysrepo datastore).
 
@@ -203,8 +198,7 @@ Typically, in a JSON encoded format containing a list, you don't know which fiel
 
 Ex: /ietf-interfaces:interfaces/interface contains multiple leaves. "name" is the key but JSON does not give this information.
 
-What is the problem with JSON and JSON_IETF encodings?
-======================================================
+## What is the problem with JSON and JSON_IETF encodings?
 
 Your gnmi client for a `get` or `subscribe` rpc must have yang models downloaded if it wants to recognize which is the key from a JSON list.
 
@@ -234,21 +228,18 @@ Ex: Which field is the key for interface list ?
 ```
 
 
-What is the problem using different encoding to store xpath in a database?
-==========================================================================
+## What is the problem using different encoding to store xpath in a database?
 
 The problem is that all encodings do not agree on the type which must be used to store a value.
 For example:
 `/ietf-interfaces:interfaces/interface[name="eth0"]/statistics/octets` can be stored as a `uint64_t` with no encoding or as a `string` with JSON IETF encoding.
 
-Why Protobuf/Binary/ASCII encoding are not supported?
-=====================================================
+## Why Protobuf/Binary/ASCII encoding are not supported?
 
 Protobuf, binary and ASCII encodings requires gNMI client and server to have a convention regarding the data exchanged.
 On the contrary, JSON IETF [RFC7951] and JSON are self describing, so both clients and server nows how data is encoded (Key:Value).
 
-What is no encoding? When should I use it?
-==========================================
+## What is no encoding? When should I use it?
 
 No encoding means your value can be encoded in one of the following type i.e. string, int64, uint64, bool, bytes, float, Decimal64.
 This types are all supported types for a YANG leaf node.
@@ -263,7 +254,6 @@ It should be used if:
 * You are making a Set request with a XPATH qualifying a YANG leaf;
 * You want to exchange lighter messages (typically for telemetry).
 
-Why do I need grpc 1.18.0 ?
-===========================
+## Why do I need grpc 1.18.0 ?
 
 This server compiles with grpc 1.12.0 but as reported here https://github.com/grpc/grpc/pull/17500 , if we want to use TLS for authentication and no root certificate is specified on server side, there will be no checking of client certificate . Thus, anyone could access the server without authenticating.
