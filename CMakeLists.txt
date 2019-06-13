@@ -25,7 +25,7 @@ find_package(PkgConfig) #official cmake module
 find_package(Boost REQUIRED log system) #just boost-log and boost-system libraries
 
 pkg_check_modules(JSONCPP REQUIRED jsoncpp) #official pkgconfig jsoncpp
-pkg_check_modules(LIBYANG REQUIRED libyang-cpp=>1.0.26)
+pkg_check_modules(LIBYANG REQUIRED libyang-cpp)
 pkg_check_modules(SYSREPO REQUIRED libSysrepo-cpp=>0.7.7) #PkgConfig cmake module maccro
 
 
@@ -118,7 +118,7 @@ if(CPACK_GENERATOR EQUAL "DEB")
     SET(CPACK_DEBIAN_PACKAGE_SECTION "misc")
     SET(CPACK_DEBIAN_PACKAGE_PRIORITY "optional")
     SET(CPACK_DEBIAN_PACKAGE_HOMEPAGE ${CPACK_SOURCE_PACKAGE_FILE_NAME})
-    SET(CPACK_DEBIAN_PACKAGE_DEPENDS "libboost-thread, libboost-log, libboost-system, libjsoncpp, libstdc++6 (>= 5.2), zlib1g, libssl")
+    SET(CPACK_DEBIAN_PACKAGE_DEPENDS "libboost-thread, libboost-log, libboost-system, libjsoncpp, libstdc++6 (>= 5.2), zlib1g, libssl, libyang-cpp0.16, sysrepo-cpp")
 endif(CPACK_GENERATOR EQUAL "DEB")
 
 #RPM specific : SET(CPACK_GENERATOR "RPM")
